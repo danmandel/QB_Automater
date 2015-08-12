@@ -1,17 +1,30 @@
-import win32api, win32
-import numpy as np
-#first you must get a sample csv loaded into ListOfTransactions
+import csv
 
 
+with open('stmt1.txt') as csvfile:
+    readCSV = csv.reader(csvfile, delimiter=',')
 
-ListOfTransactions = []
+    dates = []
+    vendors = []
+    amounts = []
+    
+    for transaction in readCSV:
+        date = transaction[0]
+        vendor = transaction[1]
+        amount = transaction[2]
 
-date,description, amount = np.loadtxt('stmt.csv',
-                                      unpack=True,
-                                      delimiter=',')
-                                      
+        print (date, vendor, amount)
 
-
+        dates.append(date)
+        vendors.append(vendor)
+        amounts.append(amount)
+        
+##    print ("dates: ", dates)
+##    print "             "
+##    print ("vendors: ", vendors)
+##    print "             "
+##    print ("amounts: ", amounts)
+        
 
 '''def click(x,y):
     win32api.SetCursorPos((x,y))
