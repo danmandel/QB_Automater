@@ -14,33 +14,20 @@ def click(x,y):
     win32api.mouse_event(win32con.MOUSEEVENTF_LEFTDOWN,x,y,0,0)
     win32api.mouse_event(win32con.MOUSEEVENTF_LEFTUP,x,y,0,0)
 
-def DVA(statement):
-    with open(statement) as csvfile:
-        readCSV = csv.reader(csvfile, delimiter=',')
-        
-        for transaction in readCSV:
-            date = transaction[0]
-            vendor = transaction[1]
-            amount = transaction[2]
-
-            return (date, vendor, amount)
-        
-click(100,120)
-
-def dataentry(test):
+def dataentry(date,vendor,amount):
     #in theory you would first check if you're in the deposits/credits screen
     #but rn i'm going to assume im at deposits.
     #starts off with "deposit to" highlighted
     #abs first thing to do is to select QB screen with a mouseclick
-    tab = send("{TAB}")
 
     #type in date according to statement row
-    send(test)
+    send("{TAB}")
+    send(date)
     send("{TAB}")
     send("{TAB}")
 
     #type in Received from: vendor
-    send(test)
+    send(vendor)
     send("{TAB}")
 
     #type in From Account: always income here
@@ -51,14 +38,25 @@ def dataentry(test):
     send("{TAB}")
 
     #type in Amount: amount
-    send("amount")
+    send(amount)
     send("{ENTER}")
     send("{ENTER}")
 
-dataentry("test")    
-
-    
-    
+def DVA(statement):
+    with open(statement) as csvfile:
+        readCSV = csv.reader(csvfile, delimiter=',')
         
-##for transaction in readCSV:
-##    dataentry(date,vendor,amount)
+        for transaction in readCSV:
+            date = transaction[0]
+            vendor = transaction[1]
+            amount = transaction[2]
+            
+            dataentry(date,vendor,amount)
+
+           
+        
+click(100,120)
+
+
+
+DVA(statement)    
