@@ -1,8 +1,8 @@
 import win32api
 
 class Checkpoint(object):
-    name = ""
-    #square or rectangle ABCD. 
+    #square or rectangle ABCD.
+    name = ""   
     a_coords = (0,0)
     b_coords = (0,0)
     c_coords = (0,0)
@@ -21,12 +21,13 @@ def make_checkpoint(name,a_coords,b_coords,c_coords,d_coords):
     checkpoint.d_coords = d_coords
 
     #didn't have to include these in the args
-##    checkpoint.mid_xaxis = mid_xaxis # eventually make this a formula of ((a[0]+b[0])/2)
-##    checkpoint.mid_yaxis = mid_yaxis
     checkpoint.mid_xaxis = (a_coords[0]+b_coords[0])/2
     checkpoint.mid_yaxis = (a_coords[1]+d_coords[1])/2
     checkpoint.midpoint = (checkpoint.mid_xaxis, checkpoint.mid_yaxis)
     return checkpoint
+
+def move_to(coordinates):
+    win32api.SetCursorPos(coordinates)
 
 Deposit_To_Textbox = make_checkpoint("Deposit_To",
                              (78,169),(152,169),
@@ -47,20 +48,3 @@ From_Account_Textbox = make_checkpoint("From_Account",
 Amount_Textbox = make_checkpoint("Amount",
                              (639,254),(759,269),
                              (639,269),(759,269))
-
-
-#x, y = win32api.GetCursorPos()
-
-def move_to(coordinates):
-    win32api.SetCursorPos(coordinates)
-
-##move_to(Date_Textbox.midpoint)
-##
-##move_to(Received_From_Textbox.midpoint)
-##
-##move_to(From_Account_Textbox.midpoint)
-##
-##move_to(Amount_Textbox.midpoint)
-
-
-#print Deposit_To_Textbox.d_coords
