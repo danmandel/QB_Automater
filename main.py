@@ -1,9 +1,11 @@
 import csv
 import SendKeys
 import win32api
-import win32com.client
+from win32com.client import Dispatch
 import win32con
 import time
+
+Auto = Dispatch("AutoItX3.Control")
 
 def move_to(coordinates):
     win32api.SetCursorPos(coordinates)
@@ -13,8 +15,8 @@ def click(coordinates):
     win32api.mouse_event(win32con.MOUSEEVENTF_LEFTDOWN,coordinates[0],coordinates[1],0,0)
     win32api.mouse_event(win32con.MOUSEEVENTF_LEFTUP,coordinates[0],coordinates[1],0,0)
 
-def send(text):
-    win32com.client.Dispatch("WScript.Shell").SendKeys(text)
+##def send(text):
+##    win32com.client.Dispatch("WScript.Shell").SendKeys(text)
 
 
 def dataentry(d,v,a):
@@ -22,29 +24,46 @@ def dataentry(d,v,a):
     #add check if you're in the deposits/credits screen
     
     #Date_Textbox
-    click(Date_Textbox.midpoint)
-    click(Date_Textbox.midpoint)
-    click(Date_Textbox.midpoint)
-    send(d)
+    time.sleep(1)
+    Auto.send(d)
+    time.sleep(1)
+    Auto.send("{TAB}")
+    time.sleep(1)
+    Auto.send("{TAB}")
     time.sleep(1)
     
 
     #Received_From_Textbox
-    click(Received_From_Textbox.midpoint)
-
-    send(v)
+    #click(Received_From_Textbox.midpoint)
+    Auto.send(v)
     time.sleep(1)
+    Auto.send("{TAB}")
+    time.sleep(1)
+    Auto.send("{TAB}")
+    time.sleep(1)
+    Auto.send("{TAB}")
+    time.sleep(1)
+
+    #Amount_Textbox
+    #click(Amount_Textbox.midpoint)
+    Auto.send(a)
+    time.sleep(1)
+    Auto.send("{TAB}")
+    time.sleep(1)
+    #send("{ENTER}")
 
     #From_Account_Textbox
-    click(From_Account_Textbox.midpoint)
-    send("income")
+    #click(From_Account_Textbox.midpoint)
+    Auto.send("income")
+    time.sleep(1)
+    Auto.send("{TAB}")
+    time.sleep(1)
+    Auto.send("{TAB}")
+    time.sleep(1)
+    Auto.send("{ENTER}")
     time.sleep(1)
     
-    #Amount_Textbox
-    click(Amount_Textbox.midpoint)
-    send(a)
-    time.sleep(1)
-    send("{ENTER}")
+    
 
     
 class Checkpoint(object):
@@ -74,22 +93,27 @@ def make_checkpoint(name,a_coords,b_coords,c_coords,d_coords):
     return checkpoint
 
 
-def DVA(statement):
+def Deposits(statement):
     with open(statement) as csvfile:
         readCSV = csv.reader(csvfile, delimiter=',')
         
+        click(Account_Balances_Box.midpoint)
+        Auto.send("{ENTER}")
+        time.sleep(2)
+        
         for transaction in readCSV:
-            date = transaction[0]
-            vendor = transaction[1]
-            amount = transaction[2]        
+##            date = transaction[0]
+##            vendor = transaction[1]
+##            amount = transaction[2]        
 
-            dataentry(date,vendor,amount)
-            print(date,vendor,amount)
+            dataentry(transaction[0],transaction[1],transaction[2])
+            time.sleep(1)
+            #print(date,vendor,amount)
             print "  "
             
-def get_cursor_location():
-    x, y = win32api.GetCursorPos()
-    print x,y
+##def get_cursor_location():
+##    x, y = win32api.GetCursorPos()
+##    print x,y
 
     
 statement = "stmt2.txt"    
@@ -112,9 +136,13 @@ From_Account_Textbox = make_checkpoint("From_Account",
 
 Amount_Textbox = make_checkpoint("Amount",
                              (639,254),(759,269),
-                             (639,269),(759,269))
+                             (639,269),(759,269)) # check the coords here
+
+Account_Balances_Box = make_checkpoint("Account_Balances",
+                             (721,172),(880,172),
+                             (721,183),(880,183))
 
 #get_cursor_location()
 
 
-DVA(statement)    
+Deposits(statement)       
