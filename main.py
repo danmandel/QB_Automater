@@ -5,67 +5,6 @@ from win32com.client import Dispatch
 import win32con
 import time
 
-Auto = Dispatch("AutoItX3.Control")
-
-def move_to(coordinates):
-    win32api.SetCursorPos(coordinates)
-    
-def click(coordinates):
-    win32api.SetCursorPos((coordinates))
-    win32api.mouse_event(win32con.MOUSEEVENTF_LEFTDOWN,coordinates[0],coordinates[1],0,0)
-    win32api.mouse_event(win32con.MOUSEEVENTF_LEFTUP,coordinates[0],coordinates[1],0,0)
-
-##def send(text):
-##    win32com.client.Dispatch("WScript.Shell").SendKeys(text)
-
-
-def dataentry(d,v,a):
-    #first thing to add is to select QB screen with a mouseclick
-    #add check if you're in the deposits/credits screen
-    
-    #Date_Textbox
-    time.sleep(1)
-    Auto.send(d)
-    time.sleep(1)
-    Auto.send("{TAB}")
-    time.sleep(1)
-    Auto.send("{TAB}")
-    time.sleep(1)
-    
-
-    #Received_From_Textbox
-    #click(Received_From_Textbox.midpoint)
-    Auto.send(v)
-    time.sleep(1)
-    Auto.send("{TAB}")
-    time.sleep(1)
-    Auto.send("{TAB}")
-    time.sleep(1)
-    Auto.send("{TAB}")
-    time.sleep(1)
-
-    #Amount_Textbox
-    #click(Amount_Textbox.midpoint)
-    Auto.send(a)
-    time.sleep(1)
-    Auto.send("{TAB}")
-    time.sleep(1)
-    #send("{ENTER}")
-
-    #From_Account_Textbox
-    #click(From_Account_Textbox.midpoint)
-    Auto.send("income")
-    time.sleep(1)
-    Auto.send("{TAB}")
-    time.sleep(1)
-    Auto.send("{TAB}")
-    time.sleep(1)
-    Auto.send("{ENTER}")
-    time.sleep(1)
-    
-    
-
-    
 class Checkpoint(object):
     #square or rectangle ABCD.
     name = ""   
@@ -76,7 +15,7 @@ class Checkpoint(object):
     mid_xaxis = 0
     mid_yaxis = 0
     midpoint = (0,0)
-    #picture = checkpoint.jpg
+    #image = checkpoint.jpg
     
 def make_checkpoint(name,a_coords,b_coords,c_coords,d_coords):
     checkpoint = Checkpoint()
@@ -92,31 +31,70 @@ def make_checkpoint(name,a_coords,b_coords,c_coords,d_coords):
     checkpoint.midpoint = (checkpoint.mid_xaxis, checkpoint.mid_yaxis)
     return checkpoint
 
+def close_all_windows():
+    Auto.WinActivate(apptitle)
+    Auto.send("!w")
+    Auto.send("{DOWN}")
+    Auto.send("{ENTER}")
 
-def Deposits(statement):
+def open_home():
+    Auto.MouseClick("left", 34, 77)
+    
+def setup():
+    Auto.WinActivate(apptitle)
+    Auto.WinMove(apptitle,"", 0, 0, 1000, 1000)
+    close_all_windows()
+    open_home()
+    Auto.send("{TAB}")
+    Auto.send("{ENTER}")
+    time.sleep(1)
+    Auto.send("!w")
+    time.sleep(1)
+    Auto.send("{DOWN 3}")
+    time.sleep(1)
+    Auto.send("{ENTER}") # right now leaves me with date selected in BOA
+
+##def move_to(coordinates):
+##    win32api.SetCursorPos(coordinates)
+    
+def click(coordinates):
+    win32api.SetCursorPos((coordinates))
+    win32api.mouse_event(win32con.MOUSEEVENTF_LEFTDOWN,coordinates[0],coordinates[1],0,0)
+    win32api.mouse_event(win32con.MOUSEEVENTF_LEFTUP,coordinates[0],coordinates[1],0,0)
+
+def depositentry(d,v,a):
+    #add check if you're in the deposits/credits screen
+
+    Auto.send(d) #Date
+    Auto.send("{TAB 2}")
+    Auto.send(v) #Vendor
+    Auto.send("{TAB 3}")
+    Auto.send(a) #Amount
+    Auto.send("{TAB}")
+    Auto.send("income") #Income
+    Auto.send("{TAB 2}") 
+    Auto.send("{ENTER}")
+    
+def Record(statement):
     with open(statement) as csvfile:
         readCSV = csv.reader(csvfile, delimiter=',')
         
-        click(Account_Balances_Box.midpoint)
-        Auto.send("{ENTER}")
-        time.sleep(2)
+        click(Account_Balances_Box.midpoint) ####FIX THIS
+        Auto.send("{ENTER}") ####FIX THIS
+        #time.sleep(2)
         
         for transaction in readCSV:
-##            date = transaction[0]
-##            vendor = transaction[1]
-##            amount = transaction[2]        
-
-            dataentry(transaction[0],transaction[1],transaction[2])
-            time.sleep(1)
-            #print(date,vendor,amount)
-            print "  "
+            date = transaction[0]
+            vendor = transaction[1]
+            amount = transaction[2]
             
-##def get_cursor_location():
-##    x, y = win32api.GetCursorPos()
-##    print x,y
+            
+            depositentry(date,vendor,amount)
+            time.sleep(1)
+            
+        print "Done"
+            
 
-    
-statement = "stmt2.txt"    
 
 Deposit_To_Textbox = make_checkpoint("Deposit_To",
                              (78,169),(152,169),
@@ -142,7 +120,9 @@ Account_Balances_Box = make_checkpoint("Account_Balances",
                              (721,172),(880,172),
                              (721,183),(880,183))
 
-#get_cursor_location()
+apptitle = "Global"
+statement = "stmt2.txt"
+Auto = Dispatch("AutoItX3.Control")
 
-
-Deposits(statement)       
+setup()
+Record(statement)    
