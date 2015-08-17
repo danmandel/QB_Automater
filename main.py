@@ -5,32 +5,6 @@ from win32com.client import Dispatch
 import win32con
 import time
 
-class Checkpoint(object):
-    #square or rectangle ABCD.
-    name = ""   
-    a_coords = (0,0)
-    b_coords = (0,0)
-    c_coords = (0,0)
-    d_coords = (0,0)
-    mid_xaxis = 0
-    mid_yaxis = 0
-    midpoint = (0,0)
-    #image = checkpoint.jpg
-    
-def make_checkpoint(name,a_coords,b_coords,c_coords,d_coords):
-    checkpoint = Checkpoint()
-    checkpoint.name = name
-    checkpoint.a_coords = a_coords
-    checkpoint.b_coords = b_coords
-    checkpoint.c_coords = c_coords
-    checkpoint.d_coords = d_coords
-
-    #didn't have to include these in the args
-    checkpoint.mid_xaxis = (a_coords[0]+b_coords[0])/2
-    checkpoint.mid_yaxis = (a_coords[1]+d_coords[1])/2
-    checkpoint.midpoint = (checkpoint.mid_xaxis, checkpoint.mid_yaxis)
-    return checkpoint
-
 def close_all_windows():
     Auto.WinActivate(apptitle)
     Auto.send("!w")
@@ -97,26 +71,33 @@ def check_if_grey(x,y):
         return False
     
 
-def send_vendor(v):
+def send_vendor(v,a): # type 4 letters. if checkifblack == true: send. else: append skipped
     #black = 
     counter = 0
     for letter in v[0:3]:
         Auto.send(letter)
         counter += 1
-        time.sleep(2)
+        time.sleep(.5)
         print counter
     if check_if_black(300,450) == True: 
         Auto.send("{TAB}") # now in payment after one tab
         print "Sent Vendor: "
+        Auto.send("{TAB 2}") #2 for deposit 0 for payment
+        Auto.send(a) #Amount
+        Auto.send("{TAB}")
+        Auto.send("income") #Income. will need to be xpanded for credits to include lookup
+        Auto.send("{TAB 2}")
+        time.sleep(2)
+        Auto.send("{ENTER}") # this en
         return True
         time.sleep(1)
+        
     else:
         Skipped_List.append(v)
-        print ("Skipped list: ",Skipped_List)
-    `   #need an escape clause of some sort
-        #goal is to
+        #print ("Skipped list: " , Skipped_List)
+        print "skipped a vendor"
         Auto.send("{ESC}")
-        Send("+{TAB 2}") # now is at Date as if nothing ever happened.
+        Auto.Send("+{TAB 2}") # now is at Date as if nothing ever happened.      
         return False
 
         
@@ -127,44 +108,12 @@ def DepositEntry(d,v,a): # Cycles for every transaction in statement if a > 0
     Auto.send(d) #Date
     Auto.send("{TAB 2}")
     #Auto.send(v) #Vendor
-    send_vendor(v)
-    if send_vendor(v) == True:
-        #if send_vendor = success then proceed, otherwise return to start
-        Auto.send("{TAB 2}") #2 for deposit 0 for payment
-        Auto.send(a) #Amount
-        Auto.send("{TAB}")
-        Auto.send("income") #Income. will need to be xpanded for credits to include lookup
-        Auto.send("{TAB 2}")
-        time.sleep(5)
-        Auto.send("{ENTER}") # this en
-        
-    else: 
-        #if send_vendor = success then proceed, otherwise return to start
-        Auto.send("{TAB 2}") #2 for deposit 0 for payment
-        Auto.send(a) #Amount
-        Auto.send("{TAB}")
-        Auto.send("income") #Income. will need to be xpanded for credits to include lookup
-        Auto.send("{TAB 2}")
-        time.sleep(5)
-        Auto.send("{ENTER}") # this enter is a clever because it covers at least 2 options. if the "30 day transaction"
-        #sign pops up it gets rid of it and goes straight to date. if it's already at date, nothing bad happens.
-
-        #now with cursor at date
-
-def CreditEntry(d,v,a):
-    #add check if you're in the deposits/credits screen
-    Auto.send(d) #Date
-    Auto.send("{TAB 2}")
-    #Auto.send(v) #Vendor
-    send_vendor(v)
-    # Auto.send("{TAB 2}") #2 for deposit 0 for payment
-    Auto.send(a) #Amount
-    Auto.send("{TAB 3}")
-    Auto.send("income") #Income. will need to be xpanded for credits to include lookup
-    Auto.send("{TAB 2}")
-    time.sleep(5)
-    Auto.send("{ENTER}")
-
+    send_vendor(v,a)
+##    check = send_vendor(v)
+##    if check == False:
+##            Auto.send("{ESC}")
+##            Send("+{TAB 2}") # now is at Date as if nothing ever happened.      
+      
 
 def Record(statement):
     with open(statement) as csvfile:
@@ -179,15 +128,16 @@ def Record(statement):
             
             if float(amount) > 0:
                 DepositEntry(date,vendor,amount)
-                print ("Debited %s to [eventual location]: " % transaction)
+                print ("Attempting to debit:  %s to [eventual location]: " % transaction)
+                
             elif float(amount) < 0:
-                #creditentry(date,vendor,amount)
+                #CreditEntry(date,vendor,amount)
                 print ("Credited %s to [eventual location]: " % transaction)
             else:
                 Skipped_List.append(transaction)
                 print ("Added %s to Skipped_List: " % transaction)
             
-            time.sleep(1)
+            #time.sleep(1)
             
         print "Done"
             
@@ -201,7 +151,8 @@ def Process():
 Skipped_List = []
 
 apptitle = "Yuliya"
-statement = "stmt2.txt"
+##statement = "stmt2.txt"
+statement = "stmtsampleclean.txt"
 Auto = Dispatch("AutoItX3.Control")
 bankcode = "10030"
 
@@ -209,4 +160,4 @@ bankcode = "10030"
 ##time.sleep(1)
 ##Record(statement)    
 Process()
-     
+    
