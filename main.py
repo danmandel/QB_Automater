@@ -13,18 +13,20 @@ def close_all_windows():
     Auto.send("{ENTER}")
 
 def open_home():
+    print "Calling open_home()"
     Auto.MouseClick("left", 34, 77)
 
-def delete_current_transaction(): #should only be used if you want to delete current transaction
-    Auto.WinActivate("Yuliya")
-    Auto.send("{CTRLDOWN}")
-    Auto.send("{d}")
-    Auto.send("{CTRLUP}")   
-    if Auto.WinExists("Past Transactions"):
-        Auto.send("{TAB}")
-        Auto.send("{ENTER}")
-        print "Closed 'Past Transactions'"
-    print "Closed current transaction. Now_at_date"
+##def delete_current_transaction(): #should only be used if you want to delete current transaction
+##    Auto.WinActivate("Yuliya")
+##    Auto.send("{CTRLDOWN}")
+##    Auto.send("{d}")
+##    Auto.send("{CTRLUP}")   
+##    if Auto.WinExists("Past Transactions") == 1:
+##        Auto.send("{TAB}")
+##        Auto.send("{ENTER}")
+##        print "Closed 'Past Transactions'"
+##    print "Closed current transaction. Now_at_date"
+    
     
 ##def select_bank(bankcode):
 ##    #Auto.WinActivate(apptitle)
@@ -35,6 +37,7 @@ def delete_current_transaction(): #should only be used if you want to delete cur
 ##    Auto.send("{ENTER}")
     
 def setup(): # might eventually be a function like setup(bankcode)
+    print "Calling setup()"
     Auto.WinActivate(apptitle)
     Auto.WinMove(apptitle,"", 0, 0, 1000, 1000)
     close_all_windows()
@@ -52,19 +55,18 @@ def is_color(x,y,color):
     else:
         return False     
    
-def attempt_send_vendor(v,Type): #rename attempt_send_v  # sucess leaves you in payment
+def attempt_send_vendor(v,Type): 
     for letter in v[0:3]:
         Auto.send(letter)
-    if is_color(300,450,black): ###########replace with: is_color(300,450,black)
-        Auto.send("{TAB}") # now in Payment after first tab
+    if is_color(300,450,black): 
+        Auto.send("{TAB}") # Now un-hilighted cursor is in Payment textbox after first tab. 
         if Type == "deposit":
-            Auto.send("{TAB 2}") # now in Deposit after 2 more tabs
+            Auto.send("{TAB 2}") # Now un-highlighted cursor is in Deposit textbox after 2 more tabs.
         elif Type == "credit":
-            #now in Payment after 0 tabs
-            pass
-        return 1 # return 1 if is_color was true    
-    else: 
-        print "Failure at 'attempt_send_vendor' : IS NOT HIGHLIGHTED."
+            pass # Now highlighted cursor is still in Payment textbox.
+        return 1   
+    else:
+        #Highlight failed. Cursor now at end of Account textbox.
         return 2
         
 def attempt_send_amount(a,Type):       
@@ -76,11 +78,11 @@ def attempt_send_amount(a,Type):
         Auto.send("{TAB 3}")# End up in Accounts after 3 tabs from Payments
         return 1
     else:
+        print "Failure occured : %s" % time.strftime("%H:%M:%S")
         print "Function 'attempt_send_amount' failed."
         return 2            
 
 def attempt_send_account(Type):
-    #account = ??
     if Type == "deposit":
         account = "income"
         Auto.send(account)
@@ -89,17 +91,27 @@ def attempt_send_account(Type):
         paste_account()
         return 1
     else:
+        print "Failure occured : %s" % time.strftime("%H:%M:%S")
         print "Function 'attempt_send_account' failed."
         return 2
     
         
 def copy_account(vendor):
-    Auto.WinActivate(apptitle)
+    #Auto.WinActivate(apptitle)
     Auto.send("!g") # alt+g
+    time.sleep(2)
     Auto.WinMove("Go To","", 0, 0, 1000, 1000)
+    time.sleep(2)
     Auto.send("{TAB}")
-    Auto.send(vendor)
-    Auto.send("ENTER}")
+    Auto.send(vendor) #Name
+    Auto.send("{TAB}")
+    
+    Auto.send("ENTER}")#does back search
+    if Auto.WinExists("Name Not Found"):
+        Auto.send("{TAB 2}")
+        Auto.send("ENTER")
+        Auto.send("ESC")
+    
     Auto.send("{TAB 2}")
     Auto.send("ENTER}")
     Auto.send("{TAB 4}")
@@ -110,29 +122,68 @@ def copy_account(vendor):
 def paste_account():
     Auto.send("{CTRLDOWN}")
     Auto.send("{v}")
-    Auto.send("{CTRLUP}") 
+    Auto.send("{CTRLUP}")
+
+def exit_TransactionEntry():
+    Auto.send("{ESC 2}")
+    #bankcode
+    #Auto.send(bankcode)
+    #Auto.send("{ENTER}")
+    
+    
+    
     
 def TransactionEntry(d,v,a,Type): # Cycles for every transaction in statement if a > 0
     Auto.send(d) #Date
     Auto.send("{TAB 2}")
     attempt_send_vendor(v,Type) #if sucess, cursor ends up in Payment or Deposit. if failure, undefined.
+    
     if attempt_send_vendor(v,Type) == 1: # does this also execute the commands in addition to returning 1? can i run without standalone command?
-        attempt_send_amount(a,Type)
+        print "attempt_send_vendor(v,Type) == 1"
+        time.sleep(1)
         if attempt_send_amount(a,Type) == 1:
-            attempt_send_account(Type)
+            print "attempt_send_amount(a,Type) == 1"
+            time.sleep(1)
             if attempt_send_account(Type)==1:
+                print "attempt_send_account(Type)==1"                
                 Auto.send("{TAB 2}")
                 print "TransactionEntry success."
+                return 1
+                time.sleep(1)
+            else:
+                Auto.send("{ESC 3}")
+                setup()
+                time.sleep(1)
+                
+                print "Method 'attempt_send_account(Type)' failed because Type =/= 1. Location: Level 3 if statement in TransactionEntry(*args) "
+        else:
+            Auto.send("{ESC 3}")
+            setup()
+            time.sleep(1)
             
-    else:
-        delete_current_transaction
+            print "Method 'attempt_send_amount(a,Type)' failed because Type =/= 1."
+    elif attempt_send_vendor == 2:
+        Auto.send("{ESC 3}")
+        #attempt_send_vendor failed. Cursor now at end of Account textbox. 
+        Skipped_List.append(transaction)
+        print "Failure occured : %s" % time.strftime("%H:%M:%S")
+        print ("Added %s to Skipped_List: " % transaction)
+        print "Info:  At 'attempt_send_vendor' : entry was not highlighted."
+        print ""
+        setup()
+        time.sleep(1)
         
-    send_vendor_result = attempt_send_vendor(v,Type)
-    send_amount_result = attempt_send_amount(a,Type)
-    send_amount_result = attempt_send_account(Type)
-    print "send_vendor_result", send_vendor_result
-    print "amount_result", send_amount_result
-    print "send_account_result", send_account_result
+
+    else:
+        print "what the fuck"
+        time.sleep(1)
+        
+##    send_vendor_result = attempt_send_vendor(v,Type)
+##    send_amount_result = attempt_send_amount(a,Type)
+##    send_amount_result = attempt_send_account(Type)
+##    print "send_vendor_result", send_vendor_result
+##    print "amount_result", send_amount_result
+##    print "send_account_result", send_account_result
     #print "TransactionEntry failed somewhere."
     print ""
 
@@ -149,16 +200,20 @@ def Record(statement):
             
             if float(amount) > 0:
                 Type = "deposit"
-                TransactionEntry(date,vendor,amount,Type)
+                #TransactionEntry(date,vendor,amount,Type)
                 #print ("Attempting to debit:  %s to [eventual location]: " % transaction)
-                print "Attempting to debit Transaction.."
+                print "Attempting to debit transaction.."
+                if TransactionEntry(date,vendor,amount,Type) == 1:
+                    print "TransactionEntry for deposit success"
                 
             elif float(amount) < 0:
                 Type = "credit"
                 copy_account(vendor)
-                TransactionEntry(date,vendor,amount,Type)
+                #TransactionEntry(date,vendor,amount,Type)
                 #print ("Credited %s to [eventual location]: " % transaction)
-                print "Attempting to crbit Transaction.."
+                print "Attempting to credit transaction.."
+                if TransactionEntry(date,vendor,amount,Type) == 1:
+                    print "TransactionEntry for credit success"
 
             else:
                 Skipped_List.append(transaction)
