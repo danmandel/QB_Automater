@@ -1,81 +1,110 @@
 import csv
-import SendKeys # maybe get rid of
 from win32com.client import Dispatch
 import win32con
 import time
 import datetime
 
-def close_all_windows():
-    print "Closing all windows at: %s" % time.strftime("%H:%M:%S")
+##def close_all_windows():
+##    print "Closing all windows at: %s" % time.strftime("%H:%M:%S")
+##    Auto.WinActivate("Yuliya")
+##    Auto.WinActivate(apptitle)
+##    Auto.send("!w")
+##    Auto.send("{DOWN}")
+##    Auto.send("{ENTER}")
+##    print "Closed all windows at: %s" % time.strftime("%H:%M:%S")
+
+def close_all_windows(): # Ends with is_color(50,50,grey == 1) aka blank screen
+    print "Calling close_all_windows() at: %s" % time.strftime("%H:%M:%S")
     Auto.WinActivate(apptitle)
     Auto.send("!w")
     Auto.send("{DOWN}")
-    Auto.send("{ENTER}")
+    time.sleep(1)
+    Auto.send("{ENTER 2}")
+    time.sleep(1)
+    for x in range(4):
+        if is_color(250,250,grey) == 0:
+            Auto.send("{ESC}")
+            print "Esc attempt %s" % x
+    Auto.Send("{ENTER}")
+    time.sleep(1)
+    for x in range(4):
+        if is_color(250,250,grey) == 0:
+            Auto.send("{ESC}")
+            print "Esc attempt %s" % x
+    print "Ended close_all_windows() at: %s" % time.strftime("%H:%M:%S")
+    print ("")
 
 def open_home():
-    print "Calling open_home()"
+    print "Calling open_home() at: %s" % time.strftime("%H:%M:%S")
     Auto.MouseClick("left", 34, 77)
+    print "Ended open_home() at: %s" % time.strftime("%H:%M:%S")
 
-##def delete_current_transaction(): #should only be used if you want to delete current transaction
-##    Auto.WinActivate("Yuliya")
-##    Auto.send("{CTRLDOWN}")
-##    Auto.send("{d}")
-##    Auto.send("{CTRLUP}")   
-##    if Auto.WinExists("Past Transactions") == 1:
-##        Auto.send("{TAB}")
-##        Auto.send("{ENTER}")
-##        print "Closed 'Past Transactions'"
-##    print "Closed current transaction. Now_at_date"
-    
-    
-##def select_bank(bankcode):
-##    #Auto.WinActivate(apptitle)
-##    BOA = 10030   # "Bank of America Business - Operating"
-##    AmEx = 10400
-##    Auto.send("{TAB}") # will eventually evolve into select_bank function
-##    Auto.send(bankcode) #^
-##    Auto.send("{ENTER}")
-    
-def setup(): # might eventually be a function like setup(bankcode)
-    print "Calling setup()"
+def tile_windows():
+    Auto.send("!w") # Tile Windows()
+    time.sleep(1)
+    Auto.send("(DOWN 3)")
+    time.sleep(1)
+    Auto.send("{ENTER}")
+    #ends wherever curlor left off. 
+
+def setup(bankcode): # leaves you with Cursor in Date according to bankcode. 
+    print "Calling setup() at: %s" % time.strftime("%H:%M:%S")
     Auto.WinActivate(apptitle)
     Auto.WinMove(apptitle,"", 0, 0, 1000, 1000)
     close_all_windows()
     open_home()
     time.sleep(1)
     Auto.send("{TAB}") # will eventually evolve into select_bank function
-    Auto.send(bankcode) #^
-    Auto.send("{ENTER}") #^
-    #time.sleep(1)
-    
+    Auto.send(bankcode) 
+    Auto.send("{ENTER}")  
+    #Auto.send("{BACKSPACE}")
+    time.sleep(1)
+    tile_windows()
+    time.sleep(1)
+    print "Ended setup() at: %s" % time.strftime("%H:%M:%S")
+    print "Now cursor is at Date for bankcode: %s " % bankcode
+
 def is_color(x,y,color):
     PositionColor = Auto.PixelGetColor(x,y)
     if color == PositionColor:
-        return True
+        return 1
     else:
-        return False     
-   
-def attempt_send_vendor(v,Type): 
+        return 0
+
+def attempt_send_vendor(v,Type): #starts at
+    print ("Calling attempt_send_vendor() at: %s" % time.strftime("%H:%M:%S"))
     for letter in v[0:3]:
         Auto.send(letter)
-    if is_color(300,450,black): 
-        Auto.send("{TAB}") # Now un-hilighted cursor is in Payment textbox after first tab. 
+        time.sleep(1)
+    if is_color(325,452,black) == 1: #############found it## really needs be improved by making apptitle = "10030" move into upper left perfectly.
+        Auto.send("{TAB}") # Now un-hilighted cursor is in Payment textbox after first tab.
+        time.sleep(1)
+        print "Vendor recognized in drop-down."
         if Type == "deposit":
             Auto.send("{TAB 2}") # Now un-highlighted cursor is in Deposit textbox after 2 more tabs.
+            return 1
         elif Type == "credit":
             pass # Now highlighted cursor is still in Payment textbox.
-        return 1   
+            return 1
+        else:
+            print "Type passed though attempt_send_vendor(v,Type) is not recognized."
+            return 0
     else:
+        print "attempt_send_vendor_ failed" 
         #Highlight failed. Cursor now at end of Account textbox.
-        return 2
+        return 0
+    print ("Ended attempt_send_vendor() at: %s" % time.strftime("%H:%M:%S"))
+
         
 def attempt_send_amount(a,Type):       
     Auto.send(a) #Amount
     if Type == "debit":
         Auto.send("{TAB}") # End up in Accounts after one tab from deposits
+        print "amount entered for debit in attempt_send_amount(a,Type)"
         return 1
     elif Type == "credit":
         Auto.send("{TAB 3}")# End up in Accounts after 3 tabs from Payments
+        print "amount entered for credit in attempt_send_amount(a,Type)"
         return 1
     else:
         print "Failure occured : %s" % time.strftime("%H:%M:%S")
@@ -86,154 +115,100 @@ def attempt_send_account(Type):
     if Type == "deposit":
         account = "income"
         Auto.send(account)
+        print "account entered for deposit in attempt_send_account(Type)"
         return 1
+        
     elif Type == "credit":
         paste_account()
+        print "account entered for deposit in attempt_send_account(Type)"
         return 1
+    
+    
     else:
         print "Failure occured : %s" % time.strftime("%H:%M:%S")
         print "Function 'attempt_send_account' failed."
-        return 2
-    
-        
-def copy_account(vendor):
-    #Auto.WinActivate(apptitle)
-    Auto.send("!g") # alt+g
-    time.sleep(2)
-    Auto.WinMove("Go To","", 0, 0, 1000, 1000)
-    time.sleep(2)
-    Auto.send("{TAB}")
-    Auto.send(vendor) #Name
-    Auto.send("{TAB}")
-    
-    Auto.send("ENTER}")#does back search
-    if Auto.WinExists("Name Not Found"):
-        Auto.send("{TAB 2}")
-        Auto.send("ENTER")
-        Auto.send("ESC")
-    
-    Auto.send("{TAB 2}")
-    Auto.send("ENTER}")
-    Auto.send("{TAB 4}")
-    Auto.send("{CTRLDOWN}")
-    Auto.send("{c}")
-    Auto.send("{CTRLUP}")
+        return 0
 
-def paste_account():
-    Auto.send("{CTRLDOWN}")
-    Auto.send("{v}")
-    Auto.send("{CTRLUP}")
 
-def exit_TransactionEntry():
-    Auto.send("{ESC 2}")
-    #bankcode
-    #Auto.send(bankcode)
-    #Auto.send("{ENTER}")
-    
-    
-    
-    
-def TransactionEntry(d,v,a,Type): # Cycles for every transaction in statement if a > 0
-    Auto.send(d) #Date
+def attempt_send_date(d):
+    print ("Called attempt_send_date(d) at: %s" % time.strftime("%H:%M:%S"))
+    time.sleep(1)
+    Auto.send(d)
     Auto.send("{TAB 2}")
-    attempt_send_vendor(v,Type) #if sucess, cursor ends up in Payment or Deposit. if failure, undefined.
+    print ("Ended attempt_send_date() at: %s" % time.strftime("%H:%M:%S"))
+    print ("")
+    time.sleep(3)
     
-    if attempt_send_vendor(v,Type) == 1: # does this also execute the commands in addition to returning 1? can i run without standalone command?
+
+##add transaction Id
+##    make Transaction a class
+
+##class Transaction(object):
+##    Transaction.
+##
+##def make_transaction(Date,Name,amount,Type,transaction) #lowercase transaction is the each in for each transaction
+
+    
+def DepositEntry(d,v,a,Type,transaction): # starts with Date in deposits highlighted
+    #print ("Calling DepositEntry() for transaction number  %s: " % transaction) ######
+    print ("Calling DepositEntry() at: %s" % time.strftime("%H:%M:%S"))
+    #time.sleep(1)
+    attempt_send_date(d) #Cursor ends up at Account (aka vendor)
+    if attempt_send_vendor(v,Type) == 1: # also executes the function ### how to make it use value without executing?
         print "attempt_send_vendor(v,Type) == 1"
         time.sleep(1)
-        if attempt_send_amount(a,Type) == 1:
+        if attempt_send_amount(v,Type) == 1:
             print "attempt_send_amount(a,Type) == 1"
             time.sleep(1)
-            if attempt_send_account(Type)==1:
-                print "attempt_send_account(Type)==1"                
-                Auto.send("{TAB 2}")
-                print "TransactionEntry success."
-                return 1
-                time.sleep(1)
-            else:
-                Auto.send("{ESC 3}")
-                setup()
-                time.sleep(1)
-                
-                print "Method 'attempt_send_account(Type)' failed because Type =/= 1. Location: Level 3 if statement in TransactionEntry(*args) "
-        else:
-            Auto.send("{ESC 3}")
-            setup()
-            time.sleep(1)
-            
-            print "Method 'attempt_send_amount(a,Type)' failed because Type =/= 1."
-    elif attempt_send_vendor == 2:
-        Auto.send("{ESC 3}")
-        #attempt_send_vendor failed. Cursor now at end of Account textbox. 
-        Skipped_List.append(transaction)
-        print "Failure occured : %s" % time.strftime("%H:%M:%S")
-        print ("Added %s to Skipped_List: " % transaction)
-        print "Info:  At 'attempt_send_vendor' : entry was not highlighted."
-        print ""
-        setup()
-        time.sleep(1)
-        
-
+            if attempt_send_account(Type) == 1:
+                time.sleep()
+                print "DepositEntry sucess"
+                return 1           
     else:
-        print "what the fuck"
+        print "DepositEntry failure"
+        return 0
         time.sleep(1)
         
-##    send_vendor_result = attempt_send_vendor(v,Type)
-##    send_amount_result = attempt_send_amount(a,Type)
-##    send_amount_result = attempt_send_account(Type)
-##    print "send_vendor_result", send_vendor_result
-##    print "amount_result", send_amount_result
-##    print "send_account_result", send_account_result
-    #print "TransactionEntry failed somewhere."
-    print ""
+def CreditEntry(d,v,a,Type,transaction):
+    #print ("Attempting to credit:  %s to [bankcode]: " % transaction) #######
+    print "CreditEntry pass on name: %s " % v
 
-    time.sleep(1)
-        
-def Record(statement):
+def Process(statement):
+    #Auto.WinActivate(apptitle)
+    #setup(bankcode)
     with open(statement) as csvfile:
         readCSV = csv.reader(csvfile, delimiter=',')
-        
+        counter = 0
         for transaction in readCSV:
+            
+            setup(bankcode) ################### ################## remove this to avoid setup every turn #tile windows
             date = transaction[0]
             vendor = transaction[1]
             amount = transaction[2]
             
-            if float(amount) > 0:
+            if float(amount) > 0: # Deposit
                 Type = "deposit"
-                #TransactionEntry(date,vendor,amount,Type)
-                #print ("Attempting to debit:  %s to [eventual location]: " % transaction)
-                print "Attempting to debit transaction.."
-                if TransactionEntry(date,vendor,amount,Type) == 1:
-                    print "TransactionEntry for deposit success"
+                DepositEntry(date,vendor,amount,Type,transaction)
                 
-            elif float(amount) < 0:
+            elif float(amount) < 0: # Credit
                 Type = "credit"
-                copy_account(vendor)
-                #TransactionEntry(date,vendor,amount,Type)
+                #copy_account(vendor)
+                CreditEntry(date,vendor,amount,Type,transaction)
                 #print ("Credited %s to [eventual location]: " % transaction)
-                print "Attempting to credit transaction.."
-                if TransactionEntry(date,vendor,amount,Type) == 1:
-                    print "TransactionEntry for credit success"
 
             else:
                 Skipped_List.append(transaction)
-                print ("Added %s to Skipped_List: " % transaction)      
+                #print ("Added %s to Skipped_List: " % transaction) # does print run the function??
+                print "How is this not a credit or deposit? Messed up in Process()"
             #time.sleep(1)
+            print "Finished Transaction number: %s" % counter
+            counter += 1 
+            print ""
+            print "______________________________"
+            print ""
                 
-        print "Done"
-
-def Process():
-    setup()
-    time.sleep(1)
-    if is_color(464,326,grey):
-        setup() #setup should leave you with date highlighted
-    
-    Record(statement)
-
-    counter = 0
-##    for transaction in Skipped_List:
-##        print "skipped %s" % transaction 
-##        counter +=1 
+        print "Processed all transactions at time: "
+         
     
 Skipped_List = []
 
@@ -246,4 +221,15 @@ current_time = time.strftime("%H:%M:%S")
 black = 0x000000 ###
 grey = 0xABABAB ###
 
-Process()
+#Auto.WinActivate(apptitle)
+Process(statement)
+
+##Auto.WinActivate("Yuliya")
+##time.sleep(1)
+print Auto.WinExists("Bank")
+
+print "Finished Process"
+
+#print Skipped_List
+
+#print Auto.WinExists("Yuliya")
