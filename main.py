@@ -15,13 +15,13 @@ def close_all_windows(): # Ends with is_color(50,50,grey == 1) aka blank screen
         Auto.send("n")      
     # chooses "close all" dropdown option
     time.sleep(1)
-    for x in range(4):
+    for x in range(5):
         if is_color(250,250,grey) == 0:
             Auto.send("{ESC}")
             print "Esc attempt %s" % x
     Auto.Send("{ENTER 2}")
     time.sleep(1)
-    for x in range(4):
+    for x in range(5):
         if is_color(250,250,grey) == 0:
             Auto.send("{ESC}")
             print "Esc attempt %s" % x
@@ -32,6 +32,7 @@ def open_make_deposits(bankcode): # Ends with cursor at "Date" textbox.
     print ("Calling open_make_deposits(bankcode) at: %s" % time.strftime("%H:%M:%S"))
     Auto.send("!b")
     Auto.send("d")
+    tile_windows()
     time.sleep(1)
     for letter in bankcode[0:3]:
         Auto.send(letter)
@@ -53,6 +54,7 @@ def open_home():
     print "Calling open_home() at: %s" % time.strftime("%H:%M:%S")
     Auto.send("!c")
     Auto.send("h") # chooses "home" dropdown option
+    time.sleep(1)
     print "Ended open_home() at: %s" % time.strftime("%H:%M:%S")
 
 def tile_windows():
@@ -74,6 +76,7 @@ def setup(bankcode): # Leaves you with cursor in Date textbox according to bankc
     time.sleep(1)
     tile_windows()
     time.sleep(1)
+    print "RAN setup aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaahh"
     print "Ended setup() at: %s" % time.strftime("%H:%M:%S")
     print "Now cursor is at Date for bankcode: %s " % bankcode
 
@@ -90,7 +93,7 @@ def attempt_send_vendor(v,Type): # Starts at
         Auto.send(letter)
         time.sleep(1)
     if is_color(325,452,black) == 1: #############found it## really needs be improved by making apptitle = "10030" move into upper left perfectly.
-        Auto.send("{TAB}") # Now un-hilighted cursor is in Payment textbox after first tab.
+        Auto.send("{TAB}") # Now hilighted cursor is in "From Account" textbox.
         time.sleep(1)
         print "Vendor recognized in drop-down."
         if Type == "deposit":
@@ -107,12 +110,35 @@ def attempt_send_vendor(v,Type): # Starts at
         #Highlight failed. Cursor now at end of Account textbox.
         return 0
     print ("Ended attempt_send_vendor() at: %s" % time.strftime("%H:%M:%S"))
+
+def attempt_send_vendor_deposit(v): # Ends at "Amount" textbox
+    print ("Calling attempt_send_vendor() at: %s" % time.strftime("%H:%M:%S"))
+    for letter in v[0:3]:
+        Auto.send(letter)
+        time.sleep(1)
+    if is_color(170,300,black) == 1: #############found it## really needs be improved by making apptitle = "10030" move into upper left perfectly.
+        Auto.send("{TAB}") # Now hilighted cursor is in "From Account" textbox.
+        Auto.send("Income")
+        print "SENT INCOME ROFLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL"
+        Auto.send("{TAB 4}") # Now un-highlighted cursor is in "Amount" textbox.
+        time.sleep(2)
+        return 1
+    else:
+        print "attempt_send_vendor(v) failed" 
+        return 0
+    print ("Ended attempt_send_vendor() at: %s" % time.strftime("%H:%M:%S"))
         
 def attempt_send_amount(a,Type):       
     Auto.send(a) #Amount
+    time.sleep(2)
     if Type == "debit":
-        Auto.send("{TAB}") # End up in Accounts after one tab from deposits
+        Auto.send("{ENTER}") # Now at "Deposit To" textbox for a new transaction.
+        if Auto.WinExists("Past Transactions"):
+            Auto.send("y")
+            print "Saving transaction >30 days in the past." # Can just delete this message in preferences.          
         print "amount entered for debit in attempt_send_amount(a,Type)"
+        print "Sending amount"
+        time.sleep(2)
         return 1
     elif Type == "credit":
         Auto.send("{TAB 3}")# End up in Accounts after 3 tabs from Payments
@@ -121,7 +147,9 @@ def attempt_send_amount(a,Type):
     else:
         print "Failure occured : %s" % time.strftime("%H:%M:%S")
         print "Function 'attempt_send_amount' failed."
-        return 2            
+        print "LMAOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO"
+        print "Entering Type: %s" % Type
+        return 0            
 
 def attempt_send_account(Type):
     if Type == "deposit":
@@ -139,7 +167,7 @@ def attempt_send_account(Type):
     else:
         print "Failure occured : %s" % time.strftime("%H:%M:%S")
         print "Function 'attempt_send_account' failed."
-        return 0
+        return 0 # Might make individual for Deposit and Credit
 
 def attempt_send_date(d): # Ends with cursor in "Received From" textbox.
     print ("Called attempt_send_date(d) at: %s" % time.strftime("%H:%M:%S"))
@@ -155,19 +183,16 @@ def DepositEntry(d,v,a,Type,transaction): # starts with Date in deposits highlig
     print ("Calling DepositEntry() at: %s" % time.strftime("%H:%M:%S"))
     #time.sleep(1)
     attempt_send_date(d) # Ends with cursor in "Received From" textbox.
-    if attempt_send_vendor(v,Type) == 1: # also executes the function ### how to make it use value without executing?
-        print "attempt_send_vendor(v,Type) == 1"
+    if attempt_send_vendor_deposit(v) == 1: # Ends with cursor at "Amount" textbox.
+        print "attempt_send_vendor(v) == 1"
         time.sleep(1)
-        if attempt_send_amount(v,Type) == 1:
-            print "attempt_send_amount(a,Type) == 1"
+        if attempt_send_amount(a,Type) == 1:
+            print "DepositEntry sucess"
             time.sleep(1)
-            if attempt_send_account(Type) == 1:
-                time.sleep()
-                print "DepositEntry sucess"
-                return 1           
+            return 1 
     else:
         print "DepositEntry failure"
-        return 0
+        return  0
         time.sleep(1)
         
 def CreditEntry(d,v,a,Type,transaction):
@@ -189,7 +214,7 @@ def Process(statement):
             amount = transaction[2]
             
             if float(amount) > 0: # Deposit
-                Type = "deposit"
+                Type = "debit"
                 close_all_windows()
                 open_make_deposits(bankcode) # Ends with cursor at "Date" textbox.
                 print "SHOULD be At DATE"
