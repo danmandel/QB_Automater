@@ -4,16 +4,17 @@ import win32con
 import time
 import datetime
 
-def close_all_windows(): # Ends with is_color(50,50,grey == 1) aka blank screen
-    print "Calling close_all_windows() at: %s" % time.strftime("%H:%M:%S")
+def close_all_windows():
+    # Starts anywhere. 
+    # Ends with blank screen.
+    #print "Calling close_all_windows() at: %s" % time.strftime("%H:%M:%S")
     Auto.WinActivate(apptitle)
     Auto.send("!w")
     Auto.send("a")
     if Auto.WinExists("Recording"):
         time.sleep(2)
-        print "do you want to record this transaction exists"
+        print "'Do you want to record this transaction?' warning message exists."
         Auto.send("n")      
-    # chooses "close all" dropdown option
     time.sleep(1)
     for x in range(5):
         if is_color(250,250,grey) == 0:
@@ -21,65 +22,54 @@ def close_all_windows(): # Ends with is_color(50,50,grey == 1) aka blank screen
             print "Esc attempt %s" % x
     Auto.Send("{ENTER 2}")
     time.sleep(1)
+    if Auto.WinExists("Past Transactions"):
+        time.sleep(2)
+        print "'Past Transactions' warning message exists."
+        Auto.send("n") 
     for x in range(5):
         if is_color(250,250,grey) == 0:
             Auto.send("{ESC}")
             print "Esc attempt %s" % x
-    print "Ended close_all_windows() at: %s" % time.strftime("%H:%M:%S")
-    print ("")
-
-def open_make_deposits(bankcode): # Ends with cursor at "Date" textbox.
-    print ("Calling open_make_deposits(bankcode) at: %s" % time.strftime("%H:%M:%S"))
+    #print "Ended close_all_windows() at: %s" % time.strftime("%H:%M:%S")
+    
+def open_make_deposits(bank_code): 
+    # Starts at blank screen. 
+    # Ends with cursor at "Date" textbox.
+    #print ("Calling open_make_deposits(bank_code) at: %s" % time.strftime("%H:%M:%S"))
     Auto.send("!b")
     Auto.send("d")
     tile_windows()
     time.sleep(1)
-    for letter in bankcode[0:3]:
+    for letter in bank_code[0:3]:
         Auto.send(letter)
         time.sleep(1)
-    if is_color(115,177,blue) == 1: # eventually make this check more than one point
-        Auto.send("{TAB}") # Now un-highlighted cursor is in Date
+    if is_color(115,177,blue) == 1: # Can avoid this by typing out bank_code, tabbing, then checking for error message.
+        Auto.send("{TAB}") # Now un-highlighted cursor is in "Date" textbox. 
         time.sleep(1)
-        print "BLUE recognized in drop-down."
-    elif is_color(135,178,blue) == 1: # eventually make this check more than one point
-        Auto.send("{TAB}") # Now un-highlighted cursor is in Date
-        print "ELIF in open_make_deposits() activated for some reason"
+    elif is_color(135,178,blue) == 1: # Backup highlight checker.
+        Auto.send("{TAB}") # Now un-highlighted cursor is in "Date" textbox.
         time.sleep(1)
-        print "BLUE recognized in drop-down. 22222222222222222222"
     else:
-        print "BLUE NOT RECOGNIZED"
-    print ("Ended open_make_deposits(bankcode) at: %s" % time.strftime("%H:%M:%S"))
+        print "Bank_code not recognized. Check is_color() coordinates." 
+    # print ("Ended open_make_deposits(bank_code) at: %s" % time.strftime("%H:%M:%S"))
 
-def open_home():
-    print "Calling open_home() at: %s" % time.strftime("%H:%M:%S")
-    Auto.send("!c")
-    Auto.send("h") # chooses "home" dropdown option
+def open_make_credits(bank_code):
+    # Starts at blank screen. 
+    # Ends with cursor at "Date" textbox.
+    print ("Calling open_make_deposits(bank_code) at: %s" % time.strftime("%H:%M:%S"))
+    Auto.send("{CTRLDOWN}")
+    Auto.send("w")
+    Auto.send("{CTRLUP}")
+    Auto.send("!k") # Now at "Bank Account" textbox.
+    tile_windows()
     time.sleep(1)
-    print "Ended open_home() at: %s" % time.strftime("%H:%M:%S")
+    print ("Ended open_make_deposits(bank_code) at: %s" % time.strftime("%H:%M:%S"))
+
 
 def tile_windows():
     Auto.send("!w")
     Auto.send("h") # Chooses "home" dropdown option. Ends wherever curlor left off. 
      
-def setup(bankcode): # Leaves you with cursor in Date textbox according to bankcode. 
-    print "Calling setup() at: %s" % time.strftime("%H:%M:%S")
-    Auto.WinActivate(apptitle)
-    Auto.WinMove(apptitle,"", 0, 0, 1000, 1000)
-    close_all_windows()
-    time.sleep(1)
-    open_home()
-    time.sleep(1)
-    Auto.send("{TAB}") # will eventually evolve into select_bank function
-    Auto.send(bankcode) 
-    Auto.send("{ENTER}")  
-    #Auto.send("{BACKSPACE}")
-    time.sleep(1)
-    tile_windows()
-    time.sleep(1)
-    print "RAN setup aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaahh"
-    print "Ended setup() at: %s" % time.strftime("%H:%M:%S")
-    print "Now cursor is at Date for bankcode: %s " % bankcode
-
 def is_color(x,y,color):
     PositionColor = Auto.PixelGetColor(x,y)
     if color == PositionColor:
@@ -89,14 +79,15 @@ def is_color(x,y,color):
 
 def attempt_send_vendor(v,Type): # Starts at
     print ("Calling attempt_send_vendor() at: %s" % time.strftime("%H:%M:%S"))
+    print ("Attempting to enter vendor: %s" % v)
     for letter in v[0:3]:
         Auto.send(letter)
         time.sleep(1)
-    if is_color(325,452,black) == 1: #############found it## really needs be improved by making apptitle = "10030" move into upper left perfectly.
-        Auto.send("{TAB}") # Now hilighted cursor is in "From Account" textbox.
+    if is_color(325,452,black) == 1: 
+        Auto.send("{TAB}") # Now highlighted cursor is in "From Account" textbox.
         time.sleep(1)
         print "Vendor recognized in drop-down."
-        if Type == "deposit":
+        if Type == "debit":
             Auto.send("{TAB }") # Ends with un-highlighted cursor in in "From Account" textbox.
             return 1
         elif Type == "credit":
@@ -106,27 +97,27 @@ def attempt_send_vendor(v,Type): # Starts at
             print "Type passed though attempt_send_vendor(v,Type) is not recognized."
             return 0
     else:
-        print "attempt_send_vendor_ failed" 
+        print "attempt_send_vendor(v,Type) failed" 
         #Highlight failed. Cursor now at end of Account textbox.
         return 0
     print ("Ended attempt_send_vendor() at: %s" % time.strftime("%H:%M:%S"))
 
 def attempt_send_vendor_deposit(v): # Ends at "Amount" textbox
-    print ("Calling attempt_send_vendor() at: %s" % time.strftime("%H:%M:%S"))
+    #print ("Calling attempt_send_vendor() at: %s" % time.strftime("%H:%M:%S"))
+    print ("Attempting to enter vendor: %s" % v)
     for letter in v[0:3]:
         Auto.send(letter)
         time.sleep(1)
-    if is_color(170,300,black) == 1: #############found it## really needs be improved by making apptitle = "10030" move into upper left perfectly.
+    if is_color(170,300,black) == 1:
         Auto.send("{TAB}") # Now hilighted cursor is in "From Account" textbox.
         Auto.send("Income")
-        print "SENT INCOME ROFLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL"
         Auto.send("{TAB 4}") # Now un-highlighted cursor is in "Amount" textbox.
         time.sleep(2)
         return 1
     else:
-        print "attempt_send_vendor(v) failed" 
+        print "Attempt to send vendor failed." 
         return 0
-    print ("Ended attempt_send_vendor() at: %s" % time.strftime("%H:%M:%S"))
+    #print ("Ended attempt_send_vendor() at: %s" % time.strftime("%H:%M:%S"))
         
 def attempt_send_amount(a,Type):       
     Auto.send(a) #Amount
@@ -152,7 +143,7 @@ def attempt_send_amount(a,Type):
         return 0            
 
 def attempt_send_account(Type):
-    if Type == "deposit":
+    if Type == "debit":
         account = "income"
         Auto.send(account)
         print "account entered for deposit in attempt_send_account(Type)"
@@ -169,20 +160,26 @@ def attempt_send_account(Type):
         print "Function 'attempt_send_account' failed."
         return 0 # Might make individual for Deposit and Credit
 
-def attempt_send_date(d): # Ends with cursor in "Received From" textbox.
-    print ("Called attempt_send_date(d) at: %s" % time.strftime("%H:%M:%S"))
+def attempt_send_date(d,Type): 
+    # Starts  
+    # Ends with cursor in "Received From" textbox.
+    #print ("Called attempt_send_date(d) at: %s" % time.strftime("%H:%M:%S"))
     time.sleep(1)
     Auto.send(d)
-    Auto.send("{TAB 2}")
-    print ("Ended attempt_send_date() at: %s" % time.strftime("%H:%M:%S"))
-    print ("")
+    if Type == "debit":
+        Auto.send("{TAB 2}")
+    elif Type == "credit":
+        Auto.send("{TAB 7}")
+        print "Should be at Account"
+        time.sleep(2)
+    else:
+        print "Not credit or debit. Check Type. "
+    #print ("Ended attempt_send_date() at: %s" % time.strftime("%H:%M:%S"))
     time.sleep(2)
-     
+   
 def DepositEntry(d,v,a,Type,transaction): # starts with Date in deposits highlighted
-    #print ("Calling DepositEntry() for transaction number  %s: " % transaction) ######
-    print ("Calling DepositEntry() at: %s" % time.strftime("%H:%M:%S"))
-    #time.sleep(1)
-    attempt_send_date(d) # Ends with cursor in "Received From" textbox.
+    #print ("Calling DepositEntry() at: %s" % time.strftime("%H:%M:%S"))
+    attempt_send_date(d, Type) # Ends with cursor in "Received From (vendor)" textbox.
     if attempt_send_vendor_deposit(v) == 1: # Ends with cursor at "Amount" textbox.
         print "attempt_send_vendor(v) == 1"
         time.sleep(1)
@@ -194,62 +191,64 @@ def DepositEntry(d,v,a,Type,transaction): # starts with Date in deposits highlig
         print "DepositEntry failure"
         return  0
         time.sleep(1)
+    #print ("Ended DepositEntry() at: %s" % time.strftime("%H:%M:%S"))
         
 def CreditEntry(d,v,a,Type,transaction):
-    #print ("Attempting to credit:  %s to [bankcode]: " % transaction) #######
-    print "CreditEntry pass on name: %s " % v
+    #print ("Attempting to credit:  %s to [bank_code]: " % transaction) #######
+    #print "CreditEntry pass on name: %s " % v
+    attempt_send_date(d,Type) # Ends with cursor in "Pay to the order of (vendor)" textbox. 
 
 def Process(statement):
     Auto.WinActivate(apptitle)
-    #setup(bankcode)
-    close_all_windows()
     with open(statement) as csvfile:
         readCSV = csv.reader(csvfile, delimiter=',')
         counter = 0
         for transaction in readCSV:
-            #close_all_windows()
-            #setup(bankcode) ################### ################## remove this to avoid setup every turn #tile windows
             date = transaction[0]
             vendor = transaction[1]
             amount = transaction[2]
             
-            if float(amount) > 0: # Deposit
+            if float(amount) > 0: # Debit.
                 Type = "debit"
                 close_all_windows()
-                open_make_deposits(bankcode) # Ends with cursor at "Date" textbox.
-                print "SHOULD be At DATE"
+                open_make_deposits(bank_code) # Ends with cursor at "Date" textbox.
                 time.sleep(1)
                 DepositEntry(date,vendor,amount,Type,transaction)
                 
-            elif float(amount) < 0: # Credit
+            elif float(amount) < 0: # Credit.
+                close_all_windows()
                 Type = "credit"
                 #copy_account(vendor)
-                CreditEntry(date,vendor,amount,Type,transaction)
-                #print ("Credited %s to [eventual location]: " % transaction)
+                open_make_credits(bank_code) # Starts at blank screen. # Ends with cursor at "Date" textbox.
+                #CreditEntry(date,vendor,amount,Type,transaction)
+                time.sleep(1)
+                print ("Credited %s to [eventual location]: " % transaction)
 
             else:
                 Skipped_List.append(transaction)
                 #print ("Added %s to Skipped_List: " % transaction) # does print run the function??
-                print "How is this not a credit or deposit? Messed up in Process()"
-            #time.sleep(1)
+                print "Error in in Process(), amount is not > or < 0."
             print "Finished Transaction number: %s" % counter
             counter += 1 
             print "______________________________"
             print ""
                 
-        print "Processed all transactions at time: "
+        print "Processed all transactions at: %s" % current_time
          
             
-
-apptitle = "Yuliya"
-statement = "C:\Python27\Scripts\QB\stmtsampleclean.txt"
 Auto = Dispatch("AutoItX3.Control")
-bankcode = "Bank of America Bus"
 current_time = time.strftime("%H:%M:%S")
 black = 0x000000 
 grey = 0xABABAB 
 blue = 0x3399FF
 Skipped_List = []
 
+#### Settings ####
+apptitle = "Yuliya"
+statement = "C:\Python27\Scripts\QB\stmtsampleclean.txt"
+bank_code = "Bank of America Bus"
+#### Settings ####
+
+
 Process(statement)
-print "Finished Process"
+
