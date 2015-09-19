@@ -31,6 +31,13 @@ def close_all_windows():
             Auto.send("{ESC}")
             print "Esc attempt %s" % x
     #print "Ended close_all_windows() at: %s" % time.strftime("%H:%M:%S")
+def check_checker():
+    if is_color(35,480,blackish_grey) == 1:
+        print "'1-Line' box is currently checked."
+        return 1
+    else:
+        print "no check "
+        return 0
     
 def open_make_deposits(bank_code): 
     # Starts at blank screen. 
@@ -50,7 +57,7 @@ def open_make_deposits(bank_code):
         Auto.send("{TAB}") # Now un-highlighted cursor is in "Date" textbox.
         time.sleep(1)
     else:
-        print "Bank_code not recognized. Check is_color() coordinates." 
+        print "Bank_code not recognized. Check is_color() coordinates."  ### get rid of this
     # print ("Ended open_make_deposits(bank_code) at: %s" % time.strftime("%H:%M:%S"))
 
 def open_make_credits(bank_code):
@@ -63,32 +70,7 @@ def open_make_credits(bank_code):
     Auto.send("!k") # Now at "Bank Account" textbox.
     tile_windows()
     time.sleep(1)
-    print ("Ended open_make_deposits(bank_code) at: %s" % time.strftime("%H:%M:%S"))
-
-def setup():
-    #close_all_windows()
-
-     Auto.WinActivate(apptitle)
-     Auto.WinMove(apptitle,"", 0, 0, 1000, 1000)
-     close_all_windows()
-     time.sleep(1)
-     open_home()
-
-"""def open_register(bankcode):
-     #print "Calling open_register() at: %s" % time.strftime("%H:%M:%S")
-     #Auto.MouseClick("left", 34, 77)
-     Auto.send("!c")
-     Auto.send("h") # chooses "home" dropdown option
-     print ("Ended open_home(bank_code) at: %s" % time.strftime("%H:%M:%S"))"""
-
-def input_check(goal):
-    testVar = raw_input("True?: x%s" % goal )
-    if testVar == "y":
-        print "cool"
-    elif testVar == "n":
-        print "not okay man"
-    else:
-        print "wut"
+    print ("Ended open_make_deposits(bank_code) at: %s" % time.strftime("%H:%M:%S")) ### combine with open_make_deposits or delete both()
 
 def open_register(bank_code):
     Auto.WinActivate(apptitle)
@@ -99,9 +81,28 @@ def open_register(bank_code):
     Auto.send("{TAB}") # activates the bank selection window
     Auto.send(bank_code) # Types in bank_code
     Auto.send("{ENTER}") # Brings up bank register
-    #input_check("is at bank register? date open?")
-    #Can also just do CTRL + R to get here but i think this might be better.
     # Ends at bank register with "Date" textbox highlighted.
+   
+def setup():
+    #close_all_windows()
+
+     Auto.WinActivate(apptitle)
+     Auto.WinMove(apptitle,"", 0, 0, 1000, 1000)
+     close_all_windows()
+     time.sleep(sleep)
+     open_home()
+     open_register()
+     if check_checker() == 1:
+         Auto.send("!1") # "Alt + 1" to turn off 1_line box.
+
+def input_check(goal):
+    testVar = raw_input("True?: x%s" % goal )
+    if testVar == "y":
+        print "cool"
+    elif testVar == "n":
+        print "not okay man"
+    else:
+        print "wut"
 
 def tile_windows():
     Auto.send("!w")
@@ -121,13 +122,13 @@ def attempt_send_vendor(v,Type): # Starts at Payee
         Auto.send(letter)
         time.sleep(1)
     if is_color(325,452,black) == 1: # or (325,452, black) or (330,468,black,Uglyregister)
-        Auto.send("{TAB}") # Now highlighted cursor is in "Charge" textbox.
+        Auto.send("{TAB}") # Now highlighted cursor is in "Payment" textbox.
         time.sleep(1)
         if Type == "debit":
-            Auto.send("{TAB 3}") # Ends with un-highlighted cursor in "Payment" textbox.
+            Auto.send("{TAB 2}") # Ends with un-highlighted cursor in "Payment" textbox.
             return 1
         elif Type == "credit":
-            Auto.send("{TAB}") # Ends with un-highlighted cursor is in "Charge" textbox.
+            #Auto.send("{TAB}") # Ends with un-highlighted cursor is in "Charge" textbox.
             return 1
         else:
             print ("Error, attempted to pass type: %s through attempt_send_vendor()" % Type)
@@ -179,7 +180,7 @@ def attempt_send_account(Type):
     if Type == "debit":
         account = "income"
         Auto.send(account)
-        print "account entered for deposit in attempt_send_account(Type)"
+        print "account entered for deposit in attempt_send_account(Type): %s" % account
         return 1
         
     elif Type == "credit":
@@ -221,13 +222,13 @@ def Transaction_Entry(d,v,a,Type,transaction):
         print "attempt_send_vendor(v) == 1"
         time.sleep(1)
         if attempt_send_amount(a,Type) == 1:
-            print "Transaction_Entry sucess"
             time.sleep(1)
             return 1 
-            if attempt_send_account == 1:
+            if attempt_send_account(Type) == 1:
+                print "Transaction_Entry sucess"
                 return 1
     else:
-        print "Transaction_Entry failure"
+        print "Transaction_Entry failure" # needs to be printed for every if but will be replaced with assert
         return  0
         time.sleep(1)
    
@@ -262,6 +263,8 @@ def copy_account(vendor):
     #auto.send ctrl c
     #go to fresh transaction box <- can be a method. but can be replaced with resetup
     print 'poop'
+
+    0x6B6B6B
 
 def Process(statement):
     Auto.WinActivate(apptitle)
@@ -312,8 +315,11 @@ def Process(statement):
 Auto = Dispatch("AutoItX3.Control")
 current_time = time.strftime("%H:%M:%S")
 black = 0x000000 
-grey = 0xABABAB 
+blackish_grey = 0x484848
 blue = 0x3399FF
+grey = 0xABABAB 
+white = 0xFFFFFF
+
 Skipped_List = []
 
 #### Settings ####
@@ -326,3 +332,7 @@ sleep = 2
 
 Process(statement)
 
+
+
+
+#check_checker()
