@@ -7,7 +7,6 @@ import datetime
 def close_all_windows():
     # Starts anywhere. 
     # Ends with blank screen.
-    #print "Calling close_all_windows() at: %s" % time.strftime("%H:%M:%S")
     Auto.WinActivate(apptitle)
     Auto.send("!w")
     Auto.send("a")
@@ -30,7 +29,7 @@ def close_all_windows():
         if is_color(250,250,grey) == 0:
             Auto.send("{ESC}")
             print "Esc attempt %s" % x
-    #print "Ended close_all_windows() at: %s" % time.strftime("%H:%M:%S")
+   
 def check_checker():
     if is_color(35,480,blackish_grey) == 1:
         print "'1-Line' box is currently checked."
@@ -40,7 +39,7 @@ def check_checker():
         return 0
     
 def partially_type(text,n):
-    print "Entering first %s letters of %s" % (n, text)
+    #print "Entering first %s letters of %s" % (n, text)
     for letter in text[0:n]:
         Auto.send(letter)
         time.sleep(.5)
@@ -70,11 +69,11 @@ def setup():
 def input_check(goal):
     testVar = raw_input("True?: x%s" % goal )
     if testVar == "y":
-        print "cool"
+        print "good"
     elif testVar == "n":
-        print "not okay man"
+        print "bad"
     else:
-        print "wut" ########
+        print "neither good nor bad" ########
 
 def tile_windows():
     Auto.send("!w")
@@ -89,7 +88,7 @@ def is_color(x,y,color):
 
 def attempt_send_vendor(v,Type): # Starts at "Payee" textbox.
     #print ("Calling attempt_send_vendor() at: %s" % time.strftime("%H:%M:%S"))
-    print ("Attempting to enter vendor: %s" % v)
+    #print ("Attempting to enter vendor: %s" % v)
     partially_type(v,n) # does it catch online vs onlinebanking
    
     if is_color(325,452,black) == 1: # or (325,452, black) or (330,468,black,Uglyregister)
@@ -193,8 +192,7 @@ def attempt_send_date(d,Type):
     else:
         print "Not credit or debit. Check Type. "
         return 0
-    #print ("Ended attempt_send_date() at: %s" % time.strftime("%H:%M:%S"))
-       
+    #print ("Ended attempt_send_date() at: %s" % time.strftime("%H:%M:%S"))      
 def copy_account(vendor):
     # Start in vendor textbox for transaction.
     #
@@ -216,30 +214,52 @@ def paste_account():
     #ctrl+v
     print 'poop'
 
+def note_skipped_transaction(Type, Transaction):
+    if Type == "debit":
+        Skipped_List.append(debitcounter,transaction)
+    elif Type == "credit":
+        Skipped_List.append(creditcounter,transaction)
+    else:
+        raise Exception
+
 
 def Transaction_Entry(d,v,a,Type,transaction):
     #print "Calling Transaction_Entry(*args)at: %s" % time.strftime("%H:%M:%S")"
-    try:
-        assert attempt_send_date(d,Type) == 1 # make this return 1 if an error pops up?
+    if Type == "debit":
+        debitcounter +=1
+    else:
+        creditcounter +=1
+
+    if attempt_send_date(d,Type) == 1:
         time.sleep(sleep)
-        assert attempt_send_vendor(v,Type) == 1
-        time.sleep(sleep)
-        assert attempt_send_amount(a,Type) == 1
-        time.sleep(sleep)
-        assert attempt_send_account(Type) == 1
-        time.sleep(sleep)
-        #print ("Ended DepositEntry() at: %s" % time.strftime("%H:%M:%S"))
-        return 1
-    except:
-        print "An assertion in Transaction_Entry failed."
-        setup()
+        if attempt_send_vendor(v,Type) == 1:
+            time.sleep(sleep)
+            if attempt_send_amount(a,Type) == 1:
+                time.sleep(sleep)
+                if attempt_send_account(Type) == 1:
+                    time.sleep(sleep)
+                    print "hooray"
+                    # if option.manual == 1: launch an input confirmation screen and wait for y/n
+                else: 
+                    print "Send_Account() failed."        
+                    note_skipped_transaction(Type,transaction)        
+            else:
+                print "Send_Amount() failed." 
+                note_skipped_transaction(Type,transaction) 
+        else:
+            print "Send_Vendor() failed."
+            note_skipped_transaction(Type,transaction) 
+    else: 
+        print "Send_Date() failed."
+        note_skipped_transaction(Type,transaction) 
 
 def Process(statement):
     setup() # Ends at "Date" textbox.
 
     with open(statement) as csvfile:
         readCSV = csv.reader(csvfile, delimiter=',')
-        counter = 0
+        debitcounter = 0
+        creditcounter = 0
         for transaction in readCSV:
             date = transaction[0]
             vendor = transaction[1]
@@ -252,14 +272,12 @@ def Process(statement):
             elif float(amount) < 0: # Credit.
                 Type = "credit"             
                 Transaction_Entry(date,vendor,amount,Type,transaction)
-
             else:
-                Skipped_List.append(transaction)
+                note_skipped_transaction(Type, Transaction)
                 #print ("Added %s to Skipped_List: " % transaction) # does print run the function??
                 print "Error in in Process(), amount is not > or < 0."
 
-            print "Finished Transaction number: %s" % counter
-            counter += 1 
+            #print "Finished Transaction number: %s" % counter 
             print "______________________________"
             print ""
                 
@@ -273,7 +291,9 @@ blackish_grey = 0x484848
 blue = 0x3399FF
 grey = 0xABABAB 
 white = 0xFFFFFF
-
+#counter = 0
+debitcounter = 0
+creditcounter = 0
 Skipped_List = []
 
 #### Settings ####
@@ -286,3 +306,5 @@ n = 7
 
 
 Process(statement)
+
+print Skipped_List
