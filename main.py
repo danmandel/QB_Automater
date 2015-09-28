@@ -69,11 +69,11 @@ def setup():
 def input_check(goal):
     testVar = raw_input("True?: x%s" % goal )
     if testVar == "y":
-        print "good"
+        print "pass"
     elif testVar == "n":
-        print "bad"
+        print "fail"
     else:
-        print "neither good nor bad" ########
+        print "y/n" ########
 
 def tile_windows():
     Auto.send("!w")
@@ -208,11 +208,11 @@ def copy_account(vendor):
         if Auto.WinExists("Recording Transaction"):
             auto.send("n")
             print "Do you want to record the transaction <- No."
-    print 'poop'
+    
 
 def paste_account():
     #ctrl+v
-    print 'poop'
+    pass
 
 def note_skipped_transaction(Type, Transaction):
     if Type == "debit":
@@ -301,7 +301,7 @@ apptitle = "Yuliya"
 statement = "C:\Python27\Scripts\QB\stmtsampleclean.txt"
 bank_code = "Bank of America Bus"
 sleep = 1
-n = 7
+n = 7 # Number of letters to type for partial_entry()
 #### Settings ####
 
 
