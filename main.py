@@ -39,22 +39,20 @@ def check_checker():
         return 0
     
 def partially_type(text,n):
-    #print "Entering first %s letters of %s" % (n, text)
+    # print "Entering first %s letters of %s" % (n, text)
     for letter in text[0:n]:
         Auto.send(letter)
         time.sleep(.5)
     
-def open_register(bank_code): # Replced open_make_credit and open_make_deposit
+def open_register(bank_code):
     # Should be started at a blank screen.
-    # Hotkey is ctrl+r.
-    #print ("Calling open_register(bank_code) at: %s" % time.strftime("%H:%M:%S"))
     Auto.send("!c") # Opens "Company" menu.
     Auto.send("h") # Selects "home".
     Auto.send("{TAB}") # Activates the bank selection window.
     Auto.send(bank_code) # Types in bank_code.
     Auto.send("{ENTER}") # Brings up register.
     # Ends at bank register with "Date" textbox highlighted.
-    print ("Ended open_register(bank_code) at: %s" % time.strftime("%H:%M:%S"))
+    
    
 def setup():
      Auto.WinActivate(apptitle)
@@ -69,11 +67,14 @@ def setup():
 def input_check(goal):
     testVar = raw_input("True?: x%s" % goal )
     if testVar == "y":
-        print "pass"
+        print "Success"
+        return 1
     elif testVar == "n":
-        print "fail"
+        print "Failure"
+        return 0
     else:
-        print "y/n" ########
+        print "Must be y/n" 
+        return 0
 
 def tile_windows():
     Auto.send("!w")
@@ -87,11 +88,10 @@ def is_color(x,y,color):
         return 0
 
 def attempt_send_vendor(v,Type): # Starts at "Payee" textbox.
-    #print ("Calling attempt_send_vendor() at: %s" % time.strftime("%H:%M:%S"))
     #print ("Attempting to enter vendor: %s" % v)
-    partially_type(v,n) # does it catch online vs onlinebanking
+    partially_type(v,n) # n letters
    
-    if is_color(325,452,black) == 1: # or (325,452, black) or (330,468,black,Uglyregister)
+    if is_color(325,452,black) == 1:
         Auto.send("{TAB}") # Now highlighted cursor is in "Payment" textbox.
 
         if Type == "debit":
@@ -106,39 +106,41 @@ def attempt_send_vendor(v,Type): # Starts at "Payee" textbox.
 
         if Auto.WinExists("Name Not Found"):
             Auto.send("c") # Need to restart transaction now.
-            print "NNF exists in attempt_send_vendor"
+            print "NNF exists in attempt_send_vendor()"
             time.sleep(10)
             return 0
-            
+              
     else:
         print "attempt_send_vendor(v,Type) failed. Check: is_color()" 
         return 0
 
     if Auto.WinExists("Name Not Found"):
-        Auto.send("c") # Need to restart transaction now.
-        print "NNF exists in attempt_send_vendor"
+        Auto.send("c") 
+        print "NNF exists in attempt_send_vendor()"
 
 def attempt_send_amount(a,Type): 
     print "Entering amount: %s" % a      
     Auto.send(a) #Amount
     time.sleep(sleep)
     if Type == "debit":
-        Auto.send("{TAB}") # Now at "Account" textbox for a new transaction.
-        '''if Auto.WinExists("Past Transactions"):
-            Auto.send("y")
-            print "Saving transaction >30 days in the past." # Can just delete this message in preferences.'''          
+        Auto.send("{TAB}") # Now at "Account" textbox.     
         return 1
     elif Type == "credit":
-        Auto.send("{TAB 3}")# End up in Accounts after 3 tabs 
+        Auto.send("{TAB 3}")# Now at "Account" textbox. 
         return 1
     else:
-        #print "Failure occured : %s" % time.strftime("%H:%M:%S")
         print "Function 'attempt_send_amount()' failed."
         print "Entering Type: %s" % Type
         return 0  
     if Auto.WinExists("Warning"):
             Auto.send("{ENTER}") # Need to restart transaction now.
             return 0
+    if Auto.WinExists("Name Not Found"):
+         Auto.send("c") # Need to restart transaction now.
+         print "NNF in send_amount()?"
+         return 0
+    else: 
+        return 1
               
 def attempt_send_account(Type):
     if Type == "debit":
@@ -146,10 +148,20 @@ def attempt_send_account(Type):
         Auto.send(account)
         print "account entered for deposit in attempt_send_account(Type): %s" % account
         Auto.send("{TAB 2}")
-        Auto.send("{ENTER}")
+        if input_check("Enter this transaction?")==1:
+            Auto.WinActivate(apptitle)
+            Auto.send("{ENTER}")
+        else:
+            print "no"
         if Auto.WinExists("Account Not Found"):
             Auto.send("c") # Need to restart transaction now.
-            print " NNF in send_account??"
+            print "ANF in send_account()?"
+            return 0
+        else: 
+            return 1
+        if Auto.WinExists("Name Not Found"):
+            Auto.send("c") # Need to restart transaction now.
+            print "NNF in send_account()?"
             return 0
         else: 
             return 1
@@ -159,19 +171,18 @@ def attempt_send_account(Type):
         print "account entered for deposit in attempt_send_account(Type)"
         if Auto.WinExists("Account Not Found"):
             Auto.send("c") # Need to restart transaction now.
+            print "ANF in send_account()?"
             return 0
         else:
             return 1
     
     else:
-        print "Failure occured : %s" % time.strftime("%H:%M:%S")
         print "Function 'attempt_send_account' failed."
-        return 0 # Might make individual for Deposit and Credit
+        return 0 
 
 def attempt_send_date(d,Type): 
     # Starts at "Date" textbox. 
     # Ends with cursor in "Received From" textbox.
-    #print ("Called attempt_send_date(d) at: %s" % time.strftime("%H:%M:%S"))
     Auto.send(d)
     print "Entering date: %s" % d
     if Type == "debit":
@@ -192,10 +203,9 @@ def attempt_send_date(d,Type):
     else:
         print "Not credit or debit. Check Type. "
         return 0
-    #print ("Ended attempt_send_date() at: %s" % time.strftime("%H:%M:%S"))      
+   
 def copy_account(vendor):
     # Start in vendor textbox for transaction.
-    #
     Auto.send("!g")
     Auto.send("!s") # Now highlighted cursor is in "Search for: "
     partially_type(vendor,n)
@@ -203,32 +213,16 @@ def copy_account(vendor):
     time.sleep(sleep)
     if Auto.WinExists("Name Not Found"):
         print "Credit's Account name not found when copying"
-        auto.send("c") # Cancel.
+        auto.send("c") 
         Auto.send("{ESC}")
         if Auto.WinExists("Recording Transaction"):
             auto.send("n")
-            print "Do you want to record the transaction <- No."
-    
-
+            
 def paste_account():
     #ctrl+v
     pass
 
-def note_skipped_transaction(Type, Transaction):
-    if Type == "debit":
-        Skipped_List.append(debitcounter,transaction)
-    elif Type == "credit":
-        Skipped_List.append(creditcounter,transaction)
-    else:
-        raise Exception
-
-
 def Transaction_Entry(d,v,a,Type,transaction):
-    #print "Calling Transaction_Entry(*args)at: %s" % time.strftime("%H:%M:%S")"
-    if Type == "debit":
-        debitcounter +=1
-    else:
-        creditcounter +=1
 
     if attempt_send_date(d,Type) == 1:
         time.sleep(sleep)
@@ -238,20 +232,20 @@ def Transaction_Entry(d,v,a,Type,transaction):
                 time.sleep(sleep)
                 if attempt_send_account(Type) == 1:
                     time.sleep(sleep)
-                    print "hooray"
-                    # if option.manual == 1: launch an input confirmation screen and wait for y/n
+                    print "success"
+                    
                 else: 
                     print "Send_Account() failed."        
-                    note_skipped_transaction(Type,transaction)        
+                    Skipped_List.append(transaction)       
             else:
                 print "Send_Amount() failed." 
-                note_skipped_transaction(Type,transaction) 
+                Skipped_List.append(transaction) 
         else:
             print "Send_Vendor() failed."
-            note_skipped_transaction(Type,transaction) 
+            Skipped_List.append(transaction)  
     else: 
         print "Send_Date() failed."
-        note_skipped_transaction(Type,transaction) 
+        Skipped_List.append(transaction) 
 
 def Process(statement):
     setup() # Ends at "Date" textbox.
@@ -274,26 +268,25 @@ def Process(statement):
                 Transaction_Entry(date,vendor,amount,Type,transaction)
             else:
                 note_skipped_transaction(Type, Transaction)
-                #print ("Added %s to Skipped_List: " % transaction) # does print run the function??
-                print "Error in in Process(), amount is not > or < 0."
+                print "Error in Process(), amount = %s" % amount
 
+        
             #print "Finished Transaction number: %s" % counter 
             print "______________________________"
             print ""
                 
         print "Processed all transactions at: %s" % current_time
          
-            
+n = 7 # length for partially_type()         
 Auto = Dispatch("AutoItX3.Control")
 current_time = time.strftime("%H:%M:%S")
+
 black = 0x000000 
 blackish_grey = 0x484848
 blue = 0x3399FF
 grey = 0xABABAB 
 white = 0xFFFFFF
 #counter = 0
-debitcounter = 0
-creditcounter = 0
 Skipped_List = []
 
 #### Settings ####
@@ -301,9 +294,8 @@ apptitle = "Yuliya"
 statement = "C:\Python27\Scripts\QB\stmtsampleclean.txt"
 bank_code = "Bank of America Bus"
 sleep = 1
-n = 7 # Number of letters to type for partial_entry()
+#add option to request confirmation after every transaction
 #### Settings ####
-
 
 Process(statement)
 
