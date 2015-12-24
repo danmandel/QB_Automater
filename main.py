@@ -210,10 +210,14 @@ def error_checker():
     if Auto.WinExists("Select Name Type"):
         return 1
     if Auto.WinExists("Warning"): 
-        return 1
+        return 1   
     
-    
-
+def go_to_date():
+    Auto.send("^d")
+    if Auto.WinExists("Past Transactions"):
+        Auto.send("n")
+    if Auto.WinExists("Delete Transaction"):
+        Auto.send("{ESC}") # lazy fix because this shouldnt show up if you do it correctly
    
 def copy_account(vendor):
     # Start in vendor textbox for transaction.
@@ -230,8 +234,7 @@ def copy_account(vendor):
         if Auto.WinExists("Recording Transaction"):
             auto.send("n")
             return 0
-
-            
+          
 def paste_account():
     #ctrl+v
     pass
@@ -261,6 +264,37 @@ def Transaction_Entry(d,v,a,Type,transaction):
         print "Send_Date() failed."
         Skipped_List.append(transaction) 
 
+
+class Setup(object):
+
+    def __init__(self,name):
+        self.name = name
+    def close_all_windows(self):
+        pass
+
+class Options(object):
+
+    def __init__(self,name):
+        self.name = name
+
+
+class Transaction(object):
+    def __init__(self, name, date, amount, v):
+        self.name = name
+        self.date = date
+        self.amount = amount
+        self.v = v
+
+    def DetermineType(self): # might have to make (self,type)
+        if self.amount > 0:
+            self.type = "debit"
+        elif self.amount < 0:
+            self.type = "credit"
+        else:
+            self.type = "Amount = 0"
+
+    
+
 def Process(statement):
     setup() # Ends at "Date" textbox.
 
@@ -268,23 +302,28 @@ def Process(statement):
         readCSV = csv.reader(csvfile, delimiter=',')
         debitcounter = 0
         creditcounter = 0
+      
         for transaction in readCSV:
             date = transaction[0]
             vendor = transaction[1]
             amount = transaction[2]
-             
+            Transaction_List.append(Transaction(76,date,amount,vendor))
+            print Transaction_List[Transaction].name
+           
             if float(amount) > 0: # Debit.
                 Type = "debit"
-                Transaction_Entry(date,vendor,amount,Type,transaction)
+                #Transaction_Entry(date,vendor,amount,Type,transaction)
                 
-            elif float(amount) < 0: # Credit.
+                            
+            elif float(amount) < float(0): # Credit.
                 Type = "credit"
-                if do_credits == 1:             
-                    Transaction_Entry(date,vendor,amount,Type,transaction)
+                #if do_credits() == 1:             
+                    #Transaction_Entry(date,vendor,amount,Type,transaction)
+      
             else:
-                note_skipped_transaction(Type, Transaction)
+                #note_skipped_transaction(Type, Transaction)
                 print "Error in Process(), amount = %s" % amount
-
+            #Transaction(date,vendor,amount,Type,transaction)  
         
             #print "Finished Transaction number: %s" % counter 
             print "______________________________"
@@ -302,6 +341,7 @@ blue = 0x3399FF
 grey = 0xABABAB 
 white = 0xFFFFFF
 #counter = 0
+Transaction_List = []
 Skipped_List = []
 
 #### Settings ####
