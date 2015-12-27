@@ -264,7 +264,6 @@ def Transaction_Entry(d,v,a,Type,transaction):
         print "Send_Date() failed."
         Skipped_List.append(transaction) 
 
-
 class Setup(object):
 
     def __init__(self,name):
@@ -276,7 +275,6 @@ class Options(object):
 
     def __init__(self,name):
         self.name = name
-
 
 class Transaction(object):
     def __init__(self, name, date, amount, v):
@@ -302,13 +300,16 @@ def Process(statement):
         readCSV = csv.reader(csvfile, delimiter=',')
         debitcounter = 0
         creditcounter = 0
-      
+        
         for transaction in readCSV:
             date = transaction[0]
             vendor = transaction[1]
             amount = transaction[2]
-            Transaction_List.append(Transaction(76,date,amount,vendor))
-            print Transaction_List[Transaction].name
+            current_transaction = Transaction(76,date,amount,vendor)
+ 
+            Transaction_List.append(current_transaction)
+            #Transaction_List.append(Transaction(76,date,amount,vendor))
+            #print Transaction(76,date,amount,vendor)
            
             if float(amount) > 0: # Debit.
                 Type = "debit"
@@ -331,6 +332,7 @@ def Process(statement):
                 
         print "Processed all transactions at: %s" % current_time
          
+
 n = 7 # length for partially_type()         
 Auto = Dispatch("AutoItX3.Control")
 current_time = time.strftime("%H:%M:%S")
@@ -343,6 +345,8 @@ white = 0xFFFFFF
 #counter = 0
 Transaction_List = []
 Skipped_List = []
+
+
 
 #### Settings ####
 apptitle = "Yuliya"
@@ -358,3 +362,10 @@ sleep = 1
 Process(statement)
 
 print Skipped_List 
+print "test"
+for i in Transaction_List:
+    print i
+print Transaction_List[1]
+
+
+print "should have printed Transaction_List"
