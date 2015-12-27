@@ -35,7 +35,6 @@ def check_checker():
         print "'1-Line' box is currently checked."
         return 1
     else:
-        print "no check "
         return 0
     
 def partially_type(text,n):
@@ -46,12 +45,13 @@ def partially_type(text,n):
     
 def open_register(bank_code):
     # Should be started at a blank screen.
+    # Ends at bank register with "Date" textbox highlighted.
     Auto.send("!c") # Opens "Company" menu.
     Auto.send("h") # Selects "home".
     Auto.send("{TAB}") # Activates the bank selection window.
     Auto.send(bank_code) # Types in bank_code.
     Auto.send("{ENTER}") # Brings up register.
-    # Ends at bank register with "Date" textbox highlighted.
+    
        
 def setup():
      Auto.WinActivate(apptitle)
@@ -239,7 +239,7 @@ def paste_account():
     #ctrl+v
     pass
 
-def Transaction_Entry(d,v,a,Type,transaction):
+'''def Transaction_Entry(d,v,a,Type,transaction):
 
     if attempt_send_date(d,Type) == 1:
         time.sleep(sleep)
@@ -262,7 +262,9 @@ def Transaction_Entry(d,v,a,Type,transaction):
             Skipped_List.append(transaction)  
     else: 
         print "Send_Date() failed."
-        Skipped_List.append(transaction) 
+        Skipped_List.append(transaction) '''
+
+ 
 
 class Setup(object):
 
@@ -276,7 +278,32 @@ class Options(object):
     def __init__(self,name):
         self.name = name
 
-class Transaction(object):
+def Transaction_Entry(current_transaction,Type): 
+
+    if attempt_send_date(d,Type) == 1:
+        time.sleep(sleep)
+        if attempt_send_vendor(v,Type) == 1:
+            time.sleep(sleep)
+            if attempt_send_amount(a,Type) == 1:
+                time.sleep(sleep)
+                if attempt_send_account(Type) == 1:
+                    time.sleep(sleep)
+                    print "success"
+                    
+                else: 
+                    print "Send_Account() failed."        
+                    Skipped_List.append(transaction)       
+            else:
+                print "Send_Amount() failed." 
+                Skipped_List.append(transaction) 
+        else:
+            print "Send_Vendor() failed."
+            Skipped_List.append(transaction)  
+    else: 
+        print "Send_Date() failed."
+        Skipped_List.append(transaction)
+
+'''class Transaction(object):
     def __init__(self, name, date, amount, v):
         self.name = name
         self.date = date
@@ -290,47 +317,58 @@ class Transaction(object):
             self.type = "credit"
         else:
             self.type = "Amount = 0"
+    def Get_Current_Transaction(self, statement):'''
 
-    
+class Transaction(object):
+    def __init__(self, transaction):
+        #self.name = 
+        self.date = transaction[0]
+        self.vendor = transaction[1]
+        self.amount = transaction[2]
+        #self.num = transaction.index
+        
 
+
+def Get_Current_Transaction(statement):
+        with open(statement) as csvfile:
+            readCSV = csv.reader(csvfile, delimiter=',')
+            for transaction in readCSV:
+                Current_Transaction = Transaction(transaction)
+                #Transaction_List.append(Current_Transaction)
+                return Current_Transaction
+
+            
 def Process(statement):
     setup() # Ends at "Date" textbox.
-
+    #Current_Transaction = Get_Current_Transaction(statement)       
     with open(statement) as csvfile:
-        readCSV = csv.reader(csvfile, delimiter=',')
-        debitcounter = 0
-        creditcounter = 0
-        
+        readCSV = csv.reader(csvfile, delimiter=',') 
         for transaction in readCSV:
-            date = transaction[0]
-            vendor = transaction[1]
-            amount = transaction[2]
-            current_transaction = Transaction(76,date,amount,vendor)
- 
-            Transaction_List.append(current_transaction)
-            #Transaction_List.append(Transaction(76,date,amount,vendor))
-            #print Transaction(76,date,amount,vendor)
-           
-            if float(amount) > 0: # Debit.
-                Type = "debit"
-                #Transaction_Entry(date,vendor,amount,Type,transaction)
-                
-                            
-            elif float(amount) < float(0): # Credit.
-                Type = "credit"
-                #if do_credits() == 1:             
+            Current_Transaction = Transaction(transaction)
+                              
+    
+            if float(Current_Transaction.amount) > 0: # Debit.
+                Current_Transaction.Type = "debit"
+                #Transaction_Entry(Current_Transaction,Type)
+                #Transaction_Entry(date,vendor,amount,Type,transaction)              
+                        
+            elif float(Current_Transaction.amount) < float(0): # Credit.
+                Current_Transaction.Type = "credit"
+                #if do_credits() == 1:
+                #Transaction_Entry(current_transaction,Type)             
                     #Transaction_Entry(date,vendor,amount,Type,transaction)
       
             else:
                 #note_skipped_transaction(Type, Transaction)
                 print "Error in Process(), amount = %s" % amount
-            #Transaction(date,vendor,amount,Type,transaction)  
-        
+            Transaction_List.append(Current_Transaction)  
+
+            #Transaction(date,vendor,amount,Type,transaction)        
             #print "Finished Transaction number: %s" % counter 
             print "______________________________"
             print ""
                 
-        print "Processed all transactions at: %s" % current_time
+    print "Processed all transactions at: %s" % current_time
          
 
 n = 7 # length for partially_type()         
@@ -345,7 +383,7 @@ white = 0xFFFFFF
 #counter = 0
 Transaction_List = []
 Skipped_List = []
-
+readCSV = ""
 
 
 #### Settings ####
@@ -360,12 +398,17 @@ sleep = 1
 #### Settings ####
 
 Process(statement)
-
+#Get_Current_Transaction(statement)
 print Skipped_List 
 print "test"
 for i in Transaction_List:
     print i
-print Transaction_List[1]
+#print Transaction_List[1]
 
 
 print "should have printed Transaction_List"
+for i in range(len(Transaction_List)):
+    print Transaction_List[i].Type
+
+#print Transaction_List[10].Type
+time.sleep(100)
