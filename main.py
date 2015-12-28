@@ -16,7 +16,7 @@ def close_all_windows():
         Auto.send("n")      
     time.sleep(1)
     for x in range(5):
-        if is_color(250,250,grey) == 0:
+        if not is_color(250,250,grey):
             Auto.send("{ESC}")
             print "Esc attempt %s" % x
     Auto.Send("{ENTER 2}")
@@ -26,12 +26,12 @@ def close_all_windows():
         print "'Past Transactions' warning message exists."
         Auto.send("n") 
     for x in range(5):
-        if is_color(250,250,grey) == 0:
+        if not is_color(250,250,grey):
             Auto.send("{ESC}")
             print "Esc attempt %s" % x
    
 def check_checker():
-    if is_color(35,480,blackish_grey) == 1:
+    if is_color(35,480,blackish_grey):
         print "'1-Line' box is currently checked."
         return 1
     else:
@@ -63,7 +63,7 @@ def setup():
     # Ends at "Date" textbox.
 
 def input_check(goal):
-    if request_confirmation == 1: 
+    if request_confirmation: 
         Auto.WinActivate("C:\Python27")
         testVar = raw_input("True?: x%s" % goal )
         if testVar == "y":
@@ -84,11 +84,8 @@ def tile_windows():
     Auto.send("h") # Chooses "home" dropdown option. Ends wherever curlor left off. 
      
 def is_color(x,y,color):
-    PositionColor = Auto.PixelGetColor(x,y)
-    if color == PositionColor:
-        return 1
-    else:
-        return 0
+
+    return (color == Auto.PixelGetColor(x,y))
 
 def error_checker():
     if Auto.WinExists("Account Not Found"):
@@ -129,8 +126,6 @@ def paste_account():
 
 class Transaction(object):
     def __init__(self, transaction):
-        #self.name = 
-        #self.num = transaction.index
         self.date = transaction[0]
         self.vendor = transaction[1]
         self.amount = transaction[2]
@@ -175,12 +170,12 @@ class Transaction(object):
         print "sending vendor"
         partially_type(self.vendor,n) # n letters
    
-        if is_color(325,452,black) == 1:
+        if is_color(325,452,black):
             Auto.send("{TAB}") # Now highlighted cursor is in "Payment" textbox.
             if self.Type == "debit":
                 Auto.send("{TAB 2}") # Ends with un-highlighted cursor in "Payment" textbox.
                 return True
-            elif Type == "credit":
+            elif self.Type == "credit":
                 #Auto.send("{TAB}") # Ends with un-highlighted cursor is in "Charge" textbox.
                 return True
             else:
@@ -232,7 +227,10 @@ class Transaction(object):
                 Auto.WinActivate(apptitle)
                 Auto.send("{ENTER}")
             else:
+                Auto.WinActivate(apptitle)
                 print "no"
+                Auto.send("c")
+                return False
             if error_checker == 1:
                 Auto.send("c") # Need to restart transaction now.
                 print "ANF error in send_account()"
@@ -249,7 +247,6 @@ class Transaction(object):
                 return False
             else:
                 return True
-    
         else:
             print "Function 'attempt_send_account' failed."
             return False 
@@ -269,14 +266,10 @@ def Process(statement):
         readCSV = csv.reader(csvfile, delimiter=',') 
         for transaction in readCSV:
             Current_Transaction = Transaction(transaction) #if i could end this function here thatd be great
-
             Current_Transaction.Determine_Type()
             time.sleep(sleep)
-            Current_Transaction.Transaction_Entry()
-       
-                              
-            Transaction_List.append(Current_Transaction)  
-                   
+            Current_Transaction.Transaction_Entry()                                 
+            Transaction_List.append(Current_Transaction)                    
             #print "Finished Transaction number: %s" % counter 
             print "______________________________"            
                 
@@ -286,13 +279,11 @@ def Process(statement):
 n = 7 # length for partially_type()         
 Auto = Dispatch("AutoItX3.Control")
 current_time = time.strftime("%H:%M:%S")
-
 black = 0x000000 
 blackish_grey = 0x484848
 blue = 0x3399FF
 grey = 0xABABAB 
 white = 0xFFFFFF
-#counter = 0
 Transaction_List = []
 Skipped_List = []
 
@@ -302,10 +293,9 @@ apptitle = "Yuliya"
 statement = "C:\Python27\Scripts\QB\stmtsampleclean.txt"
 bank_code = "Bank of America Bus"
 do_credits = 0
-request_confirmation = 0
+request_confirmation = True
 # ^ do for debits and credits separately
 sleep = 1
-#add option to request confirmation after every transaction
 #### Settings ####
 
 Process(statement)
