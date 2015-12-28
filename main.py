@@ -51,8 +51,7 @@ def open_register(bank_code):
     Auto.send("{TAB}") # Activates the bank selection window.
     Auto.send(bank_code) # Types in bank_code.
     Auto.send("{ENTER}") # Brings up register.
-    
-       
+      
 def setup():
      Auto.WinActivate(apptitle)
      Auto.WinMove(apptitle,"", 0, 0, 1000, 1000)
@@ -89,117 +88,6 @@ def is_color(x,y,color):
     if color == PositionColor:
         return 1
     else:
-        return 0
-
-def attempt_send_vendor(v,Type): # Starts at "Payee" textbox.
-    #print ("Attempting to enter vendor: %s" % v)
-    partially_type(v,n) # n letters
-   
-    if is_color(325,452,black) == 1:
-        Auto.send("{TAB}") # Now highlighted cursor is in "Payment" textbox.
-
-        if Type == "debit":
-            Auto.send("{TAB 2}") # Ends with un-highlighted cursor in "Payment" textbox.
-            return 1
-        elif Type == "credit":
-            #Auto.send("{TAB}") # Ends with un-highlighted cursor is in "Charge" textbox.
-            return 1
-        else:
-            print ("Error, attempted to pass type: %s through attempt_send_vendor()" % Type)
-            return 0
-
-        if error_checker() == 1:
-            Auto.send("{ESC}") # Need to restart transaction now.
-            print "NNF exists in attempt_send_vendor()"
-            time.sleep(10)
-            return 0
-              
-    else:
-        print "attempt_send_vendor(v,Type) failed. Check: is_color()" 
-        return 0
-
-    if Auto.WinExists("Name Not Found"):
-        Auto.send("c") 
-        print "NNF exists in attempt_send_vendor()"
-
-def attempt_send_amount(a,Type): 
-    print "Entering amount: %s" % a      
-    Auto.send(a) #Amount
-    time.sleep(sleep)
-    if Type == "debit":
-        Auto.send("{TAB}") # Now at "Account" textbox.     
-        return 1
-    elif Type == "credit":
-        Auto.send("{TAB 3}")# Now at "Account" textbox. 
-        return 1
-    else:
-        print "Function 'attempt_send_amount()' failed."
-        print "Entering Type: %s" % Type
-        return 0  
-    if error_checker() == 1:
-         Auto.send("{ESC}") # Need to restart transaction now.
-         print "NNF in send_amount()?"
-         return 0
-    else: 
-        return 1
-              
-def attempt_send_account(Type):
-    if Type == "debit":
-        account = "income"
-        Auto.send(account)
-        print "account entered for deposit in attempt_send_account(Type): %s" % account
-        Auto.send("{TAB 2}")
-        if input_check("Enter this transaction? y/n") == 1:
-            Auto.WinActivate(apptitle)
-            Auto.send("{ENTER}")
-        else:
-            print "no"
-
-        if error_checker == 1:
-            Auto.send("c") # Need to restart transaction now.
-            print "ANF error in send_account()"
-            return 0
-        else: 
-            return 1
-        
-    elif Type == "credit":
-        paste_account()
-        print "account entered for deposit in attempt_send_account(Type)"
-        if error_checker() == 1:
-            Auto.send("c") # Need to restart transaction now.
-            print "ANF error in send_account()"
-            return 0
-        else:
-            return 1
-    
-    else:
-        print "Function 'attempt_send_account' failed."
-        return 0 
-
-def attempt_send_date(d,Type): 
-    # Starts at "Date" textbox. 
-    # Ends with cursor in "Received From" textbox.
-    Auto.send("^d")
-    Auto.send(d)
-    print "Entering date: %s" % d
-    if Type == "debit":
-        Auto.send("{TAB 2}")
-  
-        if error_checker() == 1:
-            Auto.send("{ESC}") # Need to restart transaction now.
-            print "Warning encountered. Moving onto next transaction."
-            return 0
-        else:
-            return 1 
-    elif Type == "credit":
-        Auto.send("{TAB 2}")
-        if error_checker() == 1:
-            Auto.send("{ESC}") # Need to restart transaction now.
-            return 0
-        else:
-            return 1
-    else:
-        print "Not credit or debit. Check Type. "
         return 0
 
 def error_checker():
@@ -239,134 +127,158 @@ def paste_account():
     #ctrl+v
     pass
 
-'''def Transaction_Entry(d,v,a,Type,transaction):
-
-    if attempt_send_date(d,Type) == 1:
-        time.sleep(sleep)
-        if attempt_send_vendor(v,Type) == 1:
-            time.sleep(sleep)
-            if attempt_send_amount(a,Type) == 1:
-                time.sleep(sleep)
-                if attempt_send_account(Type) == 1:
-                    time.sleep(sleep)
-                    print "success"
-                    
-                else: 
-                    print "Send_Account() failed."        
-                    Skipped_List.append(transaction)       
-            else:
-                print "Send_Amount() failed." 
-                Skipped_List.append(transaction) 
-        else:
-            print "Send_Vendor() failed."
-            Skipped_List.append(transaction)  
-    else: 
-        print "Send_Date() failed."
-        Skipped_List.append(transaction) '''
-
- 
-
-class Setup(object):
-
-    def __init__(self,name):
-        self.name = name
-    def close_all_windows(self):
-        pass
-
-class Options(object):
-
-    def __init__(self,name):
-        self.name = name
-
-def Transaction_Entry(current_transaction,Type): 
-
-    if attempt_send_date(d,Type) == 1:
-        time.sleep(sleep)
-        if attempt_send_vendor(v,Type) == 1:
-            time.sleep(sleep)
-            if attempt_send_amount(a,Type) == 1:
-                time.sleep(sleep)
-                if attempt_send_account(Type) == 1:
-                    time.sleep(sleep)
-                    print "success"
-                    
-                else: 
-                    print "Send_Account() failed."        
-                    Skipped_List.append(transaction)       
-            else:
-                print "Send_Amount() failed." 
-                Skipped_List.append(transaction) 
-        else:
-            print "Send_Vendor() failed."
-            Skipped_List.append(transaction)  
-    else: 
-        print "Send_Date() failed."
-        Skipped_List.append(transaction)
-
-'''class Transaction(object):
-    def __init__(self, name, date, amount, v):
-        self.name = name
-        self.date = date
-        self.amount = amount
-        self.v = v
-
-    def DetermineType(self): # might have to make (self,type)
-        if self.amount > 0:
-            self.type = "debit"
-        elif self.amount < 0:
-            self.type = "credit"
-        else:
-            self.type = "Amount = 0"
-    def Get_Current_Transaction(self, statement):'''
-
 class Transaction(object):
     def __init__(self, transaction):
         #self.name = 
+        #self.num = transaction.index
         self.date = transaction[0]
         self.vendor = transaction[1]
         self.amount = transaction[2]
-        #self.num = transaction.index
-        
-
-
-def Get_Current_Transaction(statement):
-        with open(statement) as csvfile:
-            readCSV = csv.reader(csvfile, delimiter=',')
-            for transaction in readCSV:
-                Current_Transaction = Transaction(transaction)
-                #Transaction_List.append(Current_Transaction)
-                return Current_Transaction
-
             
+    def Determine_Type(self):
+        if float(self.amount) > 0:
+            self.Type = "debit"
+        elif float(self.amount) < 0:
+            self.Type = "credit"
+        else:
+            self.Type = "Amount = 0"
+
+    def Send_Date(self): 
+    # Starts at "Date" textbox. 
+    # Ends with cursor in "Received From" textbox.
+        print "sending date"
+        Auto.send("^d")
+        time.sleep(sleep)
+        Auto.send(self.date)
+        print "Entering date: %s" % self.date
+        if self.Type == "debit":
+            Auto.send("{TAB 2}")
+            if error_checker() == 1:
+                Auto.send("{ESC}") # Need to restart transaction now.
+                print "Warning encountered. Moving onto next transaction."
+                return False
+            else:
+                return True
+        elif self.Type == "credit":
+            Auto.send("{TAB 2}")
+            if error_checker() == 1:
+                Auto.send("{ESC}") # Need to restart transaction now.
+                return False
+            else:
+                return True
+        else:
+            print "Not credit or debit. Check Type. "
+            return False
+
+    def Send_Vendor(self): # Starts at "Payee" textbox.
+        #print ("Attempting to enter vendor: %s" % v)
+        print "sending vendor"
+        partially_type(self.vendor,n) # n letters
+   
+        if is_color(325,452,black) == 1:
+            Auto.send("{TAB}") # Now highlighted cursor is in "Payment" textbox.
+            if self.Type == "debit":
+                Auto.send("{TAB 2}") # Ends with un-highlighted cursor in "Payment" textbox.
+                return True
+            elif Type == "credit":
+                #Auto.send("{TAB}") # Ends with un-highlighted cursor is in "Charge" textbox.
+                return True
+            else:
+                print ("Error, attempted to pass type: %s through attempt_send_vendor()" % Type)
+                return False
+
+            if error_checker() == 1:
+                Auto.send("{ESC}") # Need to restart transaction now.
+                print "NNF exists in attempt_send_vendor()"
+                time.sleep(10)
+                return False
+              
+        else:
+            print "attempt_send_vendor(v,Type) failed. Check: is_color()" 
+            return False
+
+        if Auto.WinExists("Name Not Found"):
+            Auto.send("c") 
+            print "NNF exists in attempt_send_vendor()"
+
+    def Send_Amount(self): 
+        print "Entering amount: %s" % self.amount      
+        Auto.send(self.amount)
+        time.sleep(sleep)
+        if self.Type == "debit":
+            Auto.send("{TAB}") # Now at "Account" textbox.     
+            return True
+        elif self.Type == "credit":
+            Auto.send("{TAB 3}")# Now at "Account" textbox. 
+            return True
+        else:
+            print "Function 'attempt_send_amount()' failed."
+            print "Entering Type: %s" % self.Type
+            return False  
+        if error_checker() == 1:
+             Auto.send("{ESC}") # Need to restart transaction now.
+             print "NNF in send_amount()?"
+             return False
+        else:
+             pass
+
+    def Send_Account(self):
+        if self.Type == "debit":
+            self.account = "income"
+            Auto.send(self.account)
+            Auto.send("{TAB 2}")
+
+            if input_check("Enter this transaction? y/n") == 1:
+                Auto.WinActivate(apptitle)
+                Auto.send("{ENTER}")
+            else:
+                print "no"
+            if error_checker == 1:
+                Auto.send("c") # Need to restart transaction now.
+                print "ANF error in send_account()"
+                return False
+            else: 
+                return True
+        
+        elif self.Type == "credit":
+            paste_account()
+            print "account entered for deposit in attempt_send_account(Type)"
+            if error_checker() == 1:
+                Auto.send("c") # Need to restart transaction now.
+                print "ANF error in send_account()"
+                return False
+            else:
+                return True
+    
+        else:
+            print "Function 'attempt_send_account' failed."
+            return False 
+   
+    def Transaction_Entry(self):
+       if (self.Send_Date() and self.Send_Vendor() and self.Send_Amount() and self.Send_Account()):
+           print "Success"
+           return True
+       else:
+           print "Failure"
+           Skipped_List.append(self)
+           return False
+                
 def Process(statement):
-    setup() # Ends at "Date" textbox.
-    #Current_Transaction = Get_Current_Transaction(statement)       
+    setup() # Ends at "Date" textbox.  
     with open(statement) as csvfile:
         readCSV = csv.reader(csvfile, delimiter=',') 
         for transaction in readCSV:
-            Current_Transaction = Transaction(transaction)
-                              
-    
-            if float(Current_Transaction.amount) > 0: # Debit.
-                Current_Transaction.Type = "debit"
-                #Transaction_Entry(Current_Transaction,Type)
-                #Transaction_Entry(date,vendor,amount,Type,transaction)              
-                        
-            elif float(Current_Transaction.amount) < float(0): # Credit.
-                Current_Transaction.Type = "credit"
-                #if do_credits() == 1:
-                #Transaction_Entry(current_transaction,Type)             
-                    #Transaction_Entry(date,vendor,amount,Type,transaction)
-      
-            else:
-                #note_skipped_transaction(Type, Transaction)
-                print "Error in Process(), amount = %s" % amount
-            Transaction_List.append(Current_Transaction)  
+            Current_Transaction = Transaction(transaction) #if i could end this function here thatd be great
 
-            #Transaction(date,vendor,amount,Type,transaction)        
+            Current_Transaction.Determine_Type()
+            time.sleep(sleep)
+            Current_Transaction.Transaction_Entry()
+       
+                              
+            Transaction_List.append(Current_Transaction)  
+                   
             #print "Finished Transaction number: %s" % counter 
-            print "______________________________"
-            print ""
+            print "______________________________"            
                 
     print "Processed all transactions at: %s" % current_time
          
@@ -383,7 +295,6 @@ white = 0xFFFFFF
 #counter = 0
 Transaction_List = []
 Skipped_List = []
-readCSV = ""
 
 
 #### Settings ####
@@ -398,17 +309,5 @@ sleep = 1
 #### Settings ####
 
 Process(statement)
-#Get_Current_Transaction(statement)
-print Skipped_List 
-print "test"
-for i in Transaction_List:
-    print i
-#print Transaction_List[1]
 
-
-print "should have printed Transaction_List"
-for i in range(len(Transaction_List)):
-    print Transaction_List[i].Type
-
-#print Transaction_List[10].Type
 time.sleep(100)
