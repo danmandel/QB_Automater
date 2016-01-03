@@ -46,9 +46,10 @@ def partially_type(text,n):
 def open_register(bank_code):
     # Should be started at a blank screen.
     # Ends at bank register with "Date" textbox highlighted.
-    Auto.send("!c") # Opens "Company" menu.
-    Auto.send("h") # Selects "home".
-    Auto.send("{TAB}") # Activates the bank selection window.
+    #Auto.send("!c") # Opens "Company" menu.
+    #Auto.send("h") # Selects "home".
+    #Auto.send("{TAB}") # Activates the bank selection window.
+    Auto.send("^r") # Opens register.
     Auto.send(bank_code) # Types in bank_code.
     Auto.send("{ENTER}") # Brings up register.
       
@@ -301,3 +302,4 @@ sleep = 1
 Process(statement)
 
 time.sleep(100)
+
