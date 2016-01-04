@@ -66,7 +66,7 @@ def entered_y():
     if Auto.WinExists("C:\Python27"):
         print "winexists"
     Auto.WinMove("C:\Python27","", 1100, 200, 500, 500)
-    Auto.Send("^{TAB}")
+    Auto.Send("!{TAB}")
     time.sleep(1)
     #Auto.WinActivate("C:\Python27")
     test_var = raw_input("Enter this Transaction? y/n")
@@ -214,9 +214,15 @@ class Transaction(object):
         if errors_exist():
             print "Credit's Account name not found when copying"           
             return False
-            if Auto.WinExists("Recording Transaction"):
-                auto.send("n")
-                return 0
+        if Auto.WinExists("Recording Transaction"):
+            auto.send("n")
+            return False
+        Auto.send("^k")
+        Auto.send("{ESC}")
+        Auto.send("{TAB}")
+
+
+
 
     def paste_account():
         #ctrl+v
