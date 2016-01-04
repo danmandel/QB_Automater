@@ -18,7 +18,7 @@ def close_all_windows():
     for x in range(5):
         if not is_color(250,250,grey):
             Auto.send("{ESC}")
-            print "Esc attempt %s" % x
+            #print "Esc attempt %s" % x
     Auto.Send("{ENTER 2}")
     time.sleep(1)
     if Auto.WinExists("Past Transactions"):
@@ -28,8 +28,7 @@ def close_all_windows():
     for x in range(5):
         if not is_color(250,250,grey):
             Auto.send("{ESC}")
-            print "Esc attempt %s" % x
-   
+               
 def check_checker():
     if is_color(35,480,blackish_grey):
         print "'1-Line' box is currently checked."
@@ -63,16 +62,19 @@ def setup():
      if check_checker() == 1:
          Auto.send("!1") # "Alt + 1" to turn off 1_line box.
     # Ends at "Date" textbox.
-
 def entered_y():
-    Auto.WinActivate("C:\Python27")
+    if Auto.WinExists("C:\Python27"):
+        print "winexists"
+    Auto.WinMove("C:\Python27","", 1100, 200, 500, 500)
+    Auto.Send("^{TAB}")
+    time.sleep(1)
+    #Auto.WinActivate("C:\Python27")
     test_var = raw_input("Enter this Transaction? y/n")
     if test_var == "y":
         return True
     else:
         return False
     
-
 def tile_windows():
     Auto.send("!w")
     Auto.send("h") # Chooses "home" dropdown option. Ends wherever curlor left off. 
@@ -82,16 +84,6 @@ def is_color(x,y,color):
         return True
     else: 
         False
-
-def error_checker():
-    if Auto.WinExists("Account Not Found"):
-        return 1
-    if Auto.WinExists("Name Not Found"):
-        return 1
-    if Auto.WinExists("Select Name Type"):
-        return 1
-    if Auto.WinExists("Warning"): 
-        return 1   
 
 def errors_exist():
     if Auto.WinExists("Account Not Found"):
@@ -106,34 +98,7 @@ def errors_exist():
     if Auto.WinExists("Warning"): 
         print "W"
         return True   
-
-def go_to_date():
-    Auto.send("^d")
-    if Auto.WinExists("Past Transactions"):
-        Auto.send("n")
-    if Auto.WinExists("Delete Transaction"):
-        Auto.send("{ESC}") # lazy fix because this shouldnt show up if you do it correctly
-   
-def copy_account(vendor):
-    # Start in vendor textbox for transaction.
-    Auto.send("!g")
-    Auto.send("!s") # Now highlighted cursor is in "Search for: "
-    partially_type(vendor,n)
-    Auto.send("{TAB}")
-    time.sleep(sleep)
-    if error_checker == 1:
-        print "Credit's Account name not found when copying"
-        auto.send("c") 
-        Auto.send("{ESC}")
-        return 0 # now in acc portion
-        if Auto.WinExists("Recording Transaction"):
-            auto.send("n")
-            return 0
-          
-def paste_account():
-    #ctrl+v
-    pass
-
+         
 class Transaction(object):
     def __init__(self, transaction):
         self.date = transaction[0]
@@ -152,9 +117,10 @@ class Transaction(object):
     # Starts at register. 
     # Ends with cursor in "Payee" textbox.
         Auto.send("^d") # Moves cursor to "Date" textbox.
-        print "Entering date: %s" % self.date
+        #print "Entering date: %s" % self.date
+        time.sleep(sleep)
         Auto.send(self.date)  
-        time.sleep(sleep)   
+         
         Auto.send("{TAB 2}") # Moves cursor to "Payee" textbox
         if errors_exist(): # Need to restart transaction now. 
             print "errors in date"           
@@ -194,15 +160,12 @@ class Transaction(object):
         Auto.send(self.amount)
         time.sleep(sleep)
         if self.Type == "debit":
-            Auto.send("{TAB}") # Now at "Account" textbox.     
-            
+            Auto.send("{TAB}") # Now at "Account" textbox.                
         elif self.Type == "credit":
-            Auto.send("{TAB 3}")# Now at "Account" textbox. 
-            
+            Auto.send("{TAB 3}")# Now at "Account" textbox.      
         else:
             print "Send_Amount failed. Amount == 0"          
             return False  
-
         if errors_exist():
              return False
         else:
@@ -215,39 +178,61 @@ class Transaction(object):
             Auto.send("{TAB 2}")
             if request_confirmation:
                 if entered_y():
+                    print "entered y"
                     Auto.WinActivate(apptitle)
+                    print "shouldnt see y et"
                     Auto.send("{ENTER}")
+                else:
+                    Auto.WinActivate(apptitle)
+                    return False
+            else:
+                Auto.send("{ENTER}")
                                          
             if errors_exist():          
                 return False
             else: 
                 return True     
         elif self.Type == "credit":
+            copy_account(self)
             paste_account()
             print "account entered for deposit in attempt_send_account(Type)"
-            if error_checker() == 1:
-                Auto.send("c") # Need to restart transaction now.
-                print "ANF error in send_account()"
+            if errors_exist():
                 return False
             else:
                 return True
         else:
             print "Function 'attempt_send_account' failed."
             return False 
+
+    def copy_account(self):
+        # Start in vendor textbox for transaction.
+        Auto.send("!g")
+        Auto.send("!s") # Now highlighted cursor is in "Search for: "
+        partially_type(self.vendor,n)
+        Auto.send("{TAB}")
+        time.sleep(sleep)
+        if errors_exist():
+            print "Credit's Account name not found when copying"           
+            return False
+            if Auto.WinExists("Recording Transaction"):
+                auto.send("n")
+                return 0
+
+    def paste_account():
+        #ctrl+v
+        pass
    
     def Transaction_Entry(self):
        if (self.Send_Date() and self.Send_Vendor() and self.Send_Amount() and self.Send_Account()):
            print "Success"
-           return True
-         
+           return True        
        else:
            print "Transaction_Entry Failure"
            Skipped_List.append(self)
            close_all_windows()
            open_register(bank_code)
            return False
-          
-                
+                          
 def Process(statement):
     setup() # Ends at "Date" textbox.  
     with open(statement) as csvfile:
@@ -256,8 +241,7 @@ def Process(statement):
             Current_Transaction = Transaction(transaction) #if i could end this function here thatd be great
             Current_Transaction.Determine_Type()
             Current_Transaction.Transaction_Entry()                                 
-            Transaction_List.append(Current_Transaction)    
-            time.sleep(10)                
+            Transaction_List.append(Current_Transaction)                               
             #print "Finished Transaction number: %s" % counter 
             print "______________________________"            
                 
@@ -275,13 +259,12 @@ grey = 0xABABAB
 white = 0xFFFFFF
 Transaction_List = []
 Skipped_List = []
-
-
+    
 #### Settings ####
 apptitle = "Yuliya"
 statement = "C:\Python27\Scripts\QB\stmtsampleclean.txt"
 bank_code = "Bank of America Bus"
-do_credits = 0
+do_credits = True
 request_confirmation = True
 # ^ do for debits and credits separately
 sleep = 1
