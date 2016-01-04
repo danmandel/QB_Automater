@@ -116,6 +116,9 @@ class Transaction(object):
     def Send_Date(self): 
     # Starts at register. 
     # Ends with cursor in "Payee" textbox.
+        if self.Type == "credit":
+            copy_account(self)
+
         Auto.send("^d") # Moves cursor to "Date" textbox.
         #print "Entering date: %s" % self.date
         time.sleep(sleep)
@@ -214,13 +217,17 @@ class Transaction(object):
         if errors_exist():
             print "Credit's Account name not found when copying"           
             return False
-        if Auto.WinExists("Recording Transaction"):
-            auto.send("n")
-            return False
+        #if Auto.WinExists("Recording Transaction"):
+            #auto.send("n")
+            #return False
         Auto.send("^k")
         Auto.send("{ESC}")
-        Auto.send("{TAB}")
+        Auto.send("{TAB 6}")
+        Auto.send("{^c}")
 
+        '''#messag
+        alt d
+        continue date'''
 
 
 
