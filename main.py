@@ -40,7 +40,7 @@ def partially_type(text,n):
     # print "Entering first %s letters of %s" % (n, text)
     for letter in text[0:n]:
         Auto.send(letter)
-        time.sleep(.5)
+        #time.sleep(.5)
     
 def open_register(bank_code):
     # Should be started at a blank screen.
@@ -63,8 +63,6 @@ def setup():
          Auto.send("!1") # "Alt + 1" to turn off 1_line box.
     # Ends at "Date" textbox.
 def entered_y():
-    if Auto.WinExists("C:\Python27"):
-        print "winexists"
     Auto.WinMove("C:\Python27","", 1100, 200, 500, 500)
     Auto.Send("!{TAB}")
     time.sleep(1)
@@ -117,26 +115,31 @@ class Transaction(object):
     # Starts at register. 
     # Ends with cursor in "Payee" textbox.
         if self.Type == "credit":
-            copy_account(self)
+            self.copy_account()      
 
-        Auto.send("^d") # Moves cursor to "Date" textbox.
+        Auto.send("!d") # Moves cursor to "Date" textbox.
         #print "Entering date: %s" % self.date
         time.sleep(sleep)
         Auto.send(self.date)  
          
         Auto.send("{TAB 2}") # Moves cursor to "Payee" textbox
+        time.sleep(sleep)
         if errors_exist(): # Need to restart transaction now. 
             print "errors in date"           
             return False        
         else:
             return True
         
+        
     def Send_Vendor(self): 
+        
         # Starts at "Payee" textbox.
         print "Entering vendor: %s " % self.vendor
+        time.sleep(sleep)
         partially_type(self.vendor,n) # n letters
+        time.sleep(sleep)
    
-        if is_color(572,900,green):
+        if is_color(740,900,green):
             Auto.send("{TAB}") # Now highlighted cursor is in "Payment" textbox.
             if self.Type == "debit":
                 Auto.send("{TAB 2}") # Ends with un-highlighted cursor in "Deposit" textbox.
@@ -155,7 +158,7 @@ class Transaction(object):
                 return True
               
         else:
-            print "Send_Vendor failed. Dropdown box not detected." 
+            print "Send_Vendor() failed. Dropdown box not detected." 
             return False
 
     def Send_Amount(self): 
@@ -180,13 +183,12 @@ class Transaction(object):
             Auto.send(self.account)
             Auto.send("{TAB 2}")
             if request_confirmation:
-                if entered_y():
-                    print "entered y"
-                    Auto.WinActivate(apptitle)
-                    print "shouldnt see y et"
+                if entered_y():               
+                    Auto.WinActivate(apptitle)                  
                     Auto.send("{ENTER}")
-                else:
+                else:           
                     Auto.WinActivate(apptitle)
+                    Auto.send("n")
                     return False
             else:
                 Auto.send("{ENTER}")
@@ -204,7 +206,7 @@ class Transaction(object):
             else:
                 return True
         else:
-            print "Function 'attempt_send_account' failed."
+            print "Send_Account() failed."
             return False 
 
     def copy_account(self):
@@ -229,14 +231,15 @@ class Transaction(object):
         alt d
         continue date'''
 
-
-
     def paste_account():
         #ctrl+v
         pass
    
     def Transaction_Entry(self):
-       if (self.Send_Date() and self.Send_Vendor() and self.Send_Amount() and self.Send_Account()):
+       if self.Type == "credit" and not do_credits:
+           print "should be skipping: %s" % self.amount
+           return False
+       elif(self.Send_Date() and self.Send_Vendor() and self.Send_Amount() and self.Send_Account()):
            print "Success"
            return True        
        else:
@@ -251,11 +254,13 @@ def Process(statement):
     with open(statement) as csvfile:
         readCSV = csv.reader(csvfile, delimiter=',') 
         for transaction in readCSV:
+            Auto.WinActivate(apptitle)
             Current_Transaction = Transaction(transaction) #if i could end this function here thatd be great
             Current_Transaction.Determine_Type()
             Current_Transaction.Transaction_Entry()                                 
-            Transaction_List.append(Current_Transaction)                               
+            #Transaction_List.append(Current_Transaction)                               
             #print "Finished Transaction number: %s" % counter 
+            time.sleep(sleep)
             print "______________________________"            
                 
     print "Processed all transactions at: %s" % current_time
@@ -277,7 +282,7 @@ Skipped_List = []
 apptitle = "Yuliya"
 statement = "C:\Python27\Scripts\QB\stmtsampleclean.txt"
 bank_code = "Bank of America Bus"
-do_credits = True
+do_credits = False
 request_confirmation = True
 # ^ do for debits and credits separately
 sleep = 1
