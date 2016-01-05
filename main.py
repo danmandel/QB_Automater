@@ -68,7 +68,7 @@ def entered_y():
     Auto.WinMove("*Python 2.7.11 Shell*","", 901, 200, 460, 500)
     Auto.Send("!{TAB}")
     time.sleep(sleep)
-    test_var = raw_input("Enter this Transaction? y/n: ")
+    test_var = raw_input("Enter this transaction? y/n: ")
     if test_var == "y":
         return True
     else:
@@ -116,11 +116,13 @@ class Transaction(object):
     # Starts at register. 
     # Ends with cursor in "Payee" textbox.
         if self.Type == "credit":
-            self.copy_account()      
-
+            print "starting copy_account"
+            self.copy_account()
+            time.sleep(sleep)
+        print "date %s" % self.date 
         Auto.send("!d") # Moves cursor to "Date" textbox.
         #print "Entering date: %s" % self.date
-        time.sleep(sleep)
+        time.sleep(3)
         Auto.send(self.date)  
          
         Auto.send("{TAB 2}") # Moves cursor to "Payee" textbox
@@ -179,11 +181,11 @@ class Transaction(object):
         if self.Type == "debit":
             self.account = "income"
             Auto.send(self.account)
-            Auto.send("{TAB 2}")
+            Auto.send("{TAB}")
             if request_confirmation:
                 if entered_y():               
                     Auto.WinActivate(apptitle)                          
-                    Auto.send("{ENTER}")
+                    Auto.send("{TAB}")
                     if errors_exist():          
                         return False
                     else: 
@@ -195,14 +197,13 @@ class Transaction(object):
                     close_all_windows()
                     return False
             else:
-                Auto.send("{ENTER}")                          
+                Auto.send("{TAB}")                          
                 if errors_exist():          
                     return False
                 else: 
                     return True     
         elif self.Type == "credit":
-            copy_account(self)
-            paste_account()
+            self.paste_account()
             print "account entered for deposit in attempt_send_account(Type)"
             if errors_exist():
                 return False
@@ -214,45 +215,76 @@ class Transaction(object):
 
     def copy_account(self):
         # Start in vendor textbox for transaction. or date tb?
+        time.sleep(sleep)
         Auto.send("!g")
+        print "should have opened copy acc by now"
         Auto.send("!s") # Now highlighted cursor is in "Search for: "
+        time.sleep(sleep)
         partially_type(self.vendor,n)
         Auto.send("{TAB}")
         time.sleep(sleep)
         if errors_exist():
-            print "Credit's Account name not found when copying"           
+            print "Credit's account name not found when copying"
+            Auto.send("{ESC 3}")
+            time.sleep(sleep)
             return False
-        #if Auto.WinExists("Recording Transaction"):
-            #auto.send("n")
-            #return False
-        Auto.send("^k")
+        Auto.send("!k")
+        time.sleep(sleep)
         Auto.send("{ESC}")
-        Auto.send("{TAB 6}")
+        time.sleep(sleep)
+        Auto.send("{TAB 4}")
+        print 69
+        time.sleep(50)
         Auto.send("{^c}")
+        time.sleep(4)
+        Auto.send("{ESC}")#
+        time.sleep(sleep)
+        Auto.send("n")#
+        time.sleep(sleep)
+        open_register(bank_code)
+        time.sleep(sleep)
+        
+        
 
         '''#messag
         alt d
         continue date'''
 
-    def paste_account():
-        #ctrl+v
-        pass
-   
+    def paste_account(self):
+        Auto.send("{^v}")
+               
     def Transaction_Entry(self):
-       if self.Type == "credit" and not do_credits:
-           print "Skipping: %s" % self.amount
-           return False
-       elif(self.Send_Date() and self.Send_Vendor() and self.Send_Amount() and self.Send_Account()):
-           print "Success"
-           return True        
-       else:
-           print "Transaction_Entry() failed."
-           Skipped_List.append(self)
-           time.sleep(2)
-           close_all_windows()
-           open_register(bank_code)
-           return False
-                          
+
+        if self.Type == "debit" and do_debits:
+            if (self.Send_Date() and self.Send_Vendor() and self.Send_Amount() and self.Send_Account()):
+               return True
+            else:
+                print "Skipping: %s" % self.amount
+                Skipped_List.append(self)
+                time.sleep(sleep)
+                close_all_windows()
+                open_register(bank_code)
+                return False                
+        elif self.Type == "credit" and do_credits:
+            if (self.Send_Date() and self.Send_Vendor() and self.Send_Amount() and self.Send_Account()):
+                return True
+            else:
+                print "Skipping: %s" % self.amount
+                Skipped_List.append(self)
+                time.sleep(sleep)
+                close_all_windows()
+                open_register(bank_code)
+                return False
+        else:
+            print "Skipping: %s" % self.amount
+            Skipped_List.append(self)
+            time.sleep(sleep)
+            close_all_windows()
+            time.sleep(1)
+            open_register(bank_code)
+            return False
+        
+   
 def Process(statement):
     setup() # Ends at "Date" textbox.  
     with open(statement) as csvfile:
@@ -284,11 +316,13 @@ Skipped_List = []
     
 ##### SETTINGS #####
 apptitle = "Yuliya"
-statement = "C:\Python27\Scripts\QB\stmt_dec.txt"
+statement = "C:\Python27\Scripts\QB\credit_test.txt"
 bank_code = "Bank of America Bus"
-do_credits = False
+do_debits = False
+do_credits = True
 request_confirmation = True
 sleep = 1 #seconds
 ##### SETTINGS #####
 
 Process(statement)
+
