@@ -1,6 +1,5 @@
 import csv
 from win32com.client import Dispatch
-import win32con
 import time
 import datetime
 
@@ -40,21 +39,18 @@ def partially_type(text,n):
     # print "Entering first %s letters of %s" % (n, text)
     for letter in text[0:n]:
         Auto.send(letter)
-        #time.sleep(.5)
+        time.sleep(.1)
     
 def open_register(bank_code):
     # Should be started at a blank screen.
     # Ends at bank register with "Date" textbox highlighted.
-    #Auto.send("!c") # Opens "Company" menu.
-    #Auto.send("h") # Selects "home".
-
     Auto.send("^r") # Opens register.
     Auto.send(bank_code) # Types in bank_code.
     Auto.send("{ENTER}") # Brings up register.
       
 def setup():
      Auto.WinActivate(apptitle)
-     Auto.WinMove(apptitle,"", 0, 0, 1000, 1000)
+     Auto.WinMove(apptitle,"", 0, 0, 900, 700) #0,0,x,y
      close_all_windows()
      time.sleep(sleep)
      open_register(bank_code)
@@ -62,12 +58,13 @@ def setup():
      if check_checker() == 1:
          Auto.send("!1") # "Alt + 1" to turn off 1_line box.
     # Ends at "Date" textbox.
+    
 def entered_y():
-    Auto.WinMove("C:\Python27","", 1100, 200, 500, 500)
+    Auto.WinMove("*Python 2.7.11 Shell*","", 901, 200, 460, 500)
     Auto.Send("!{TAB}")
     time.sleep(1)
     #Auto.WinActivate("C:\Python27")
-    test_var = raw_input("Enter this Transaction? y/n")
+    test_var = raw_input("Enter this Transaction? y/n: ")
     if test_var == "y":
         return True
     else:
@@ -123,7 +120,7 @@ class Transaction(object):
         Auto.send(self.date)  
          
         Auto.send("{TAB 2}") # Moves cursor to "Payee" textbox
-        time.sleep(sleep)
+        #time.sleep(sleep)
         if errors_exist(): # Need to restart transaction now. 
             print "errors in date"           
             return False        
@@ -131,15 +128,15 @@ class Transaction(object):
             return True
         
         
-    def Send_Vendor(self): 
-        
+    def Send_Vendor1(self):    
         # Starts at "Payee" textbox.
         print "Entering vendor: %s " % self.vendor
         time.sleep(sleep)
         partially_type(self.vendor,n) # n letters
         time.sleep(sleep)
+        
    
-        if is_color(740,900,green):
+        if is_color(777,595,green): #depends on computer. is there a better way with tab error check?
             Auto.send("{TAB}") # Now highlighted cursor is in "Payment" textbox.
             if self.Type == "debit":
                 Auto.send("{TAB 2}") # Ends with un-highlighted cursor in "Deposit" textbox.
@@ -160,9 +157,37 @@ class Transaction(object):
         else:
             print "Send_Vendor() failed. Dropdown box not detected." 
             return False
+        
+    def Send_Vendor(self):     
+        # Starts at "Payee" textbox.
+        print "Entering vendor: %s " % self.vendor
+        time.sleep(sleep)
+        partially_type(self.vendor,n) # n letters
+        time.sleep(sleep)
+        Auto.send("{TAB}") # Now highlighted cursor is in "Payment" textbox.
+        if errors_exist():
+            print "Send_Vendor() failed. Dropdown box not detected." 
+            return False
+        else:
+            if self.Type == "debit":
+                Auto.send("{TAB 2}") # Ends with un-highlighted cursor in "Deposit" textbox.
+                
+            elif self.Type == "credit":
+                Auto.send("{TAB}") # Ends with un-highlighted cursor is in "Payment" textbox.
+                
+            else:
+                print ("Error, attempted to pass type: %s through Send_Vendor()" % self.Type)
+                return False
+
+            if errors_exist():  
+                print "Errors in Send_Vendor()"        
+                return False
+            else:
+                return True
+           
 
     def Send_Amount(self): 
-        print "Entering amount: %s" % self.amount      
+        #print "Entering amount: %s" % self.amount      
         Auto.send(self.amount)
         time.sleep(sleep)
         if self.Type == "debit":
@@ -243,7 +268,7 @@ class Transaction(object):
            print "Success"
            return True        
        else:
-           print "Transaction_Entry Failure"
+           print "Transaction_Entry() Failure"
            Skipped_List.append(self)
            close_all_windows()
            open_register(bank_code)
@@ -266,7 +291,7 @@ def Process(statement):
     print "Processed all transactions at: %s" % current_time
          
 
-n = 7 # length for partially_type()         
+n = 6 # length for partially_type()         
 Auto = Dispatch("AutoItX3.Control")
 current_time = time.strftime("%H:%M:%S")
 green = 0x4E9E19
@@ -278,14 +303,13 @@ white = 0xFFFFFF
 Transaction_List = []
 Skipped_List = []
     
-#### Settings ####
+##### SETTINGS #####
 apptitle = "Yuliya"
-statement = "C:\Python27\Scripts\QB\stmtsampleclean.txt"
+statement = "C:\Python27\Scripts\QB\stmt_july.txt"
 bank_code = "Bank of America Bus"
 do_credits = False
 request_confirmation = True
-# ^ do for debits and credits separately
-sleep = 1
-#### Settings ####
+sleep = 1 #seconds
+##### SETTINGS #####
 
 Process(statement)
