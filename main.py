@@ -160,7 +160,6 @@ class Transaction(object):
             else:
                 return True
            
-
     def Send_Amount(self): 
         #print "Entering amount: %s" % self.amount      
         Auto.send(self.amount)
@@ -217,32 +216,41 @@ class Transaction(object):
         # Start in vendor textbox for transaction. or date tb?
         time.sleep(sleep)
         Auto.send("!g")
-        print "should have opened copy acc by now"
         Auto.send("!s") # Now highlighted cursor is in "Search for: "
         time.sleep(sleep)
         partially_type(self.vendor,n)
         Auto.send("{TAB}")
         time.sleep(sleep)
-        if errors_exist():
+        if Auto.WinExists("Name Not Found"):
             print "Credit's account name not found when copying"
             Auto.send("{ESC 3}")
             time.sleep(sleep)
             return False
+        time.sleep(sleep)
+      
         Auto.send("!k")
         time.sleep(sleep)
-        Auto.send("{ESC}")
-        time.sleep(sleep)
-        Auto.send("{TAB 4}")
-        print 69
-        time.sleep(50)
-        Auto.send("{^c}")
-        time.sleep(4)
-        Auto.send("{ESC}")#
-        time.sleep(sleep)
-        Auto.send("n")#
-        time.sleep(sleep)
-        open_register(bank_code)
-        time.sleep(sleep)
+        Auto.WinActivate(apptitle) #not sure why this seems to be necessary
+        if Auto.WinExists("Warning"):
+            print "warning exists"
+            Auto.send("{ENTER}")
+            Auto.send("{ESC 2}")
+            return False
+        else:
+            time.sleep(sleep)
+            Auto.send("{ESC}")
+            time.sleep(sleep)
+            Auto.send("{TAB 4}")
+           
+            time.sleep(sleep)
+            Auto.send("{c}")
+            time.sleep(3)
+            Auto.send("{ESC}")#
+            time.sleep(sleep)
+            Auto.send("n")#
+            time.sleep(sleep)
+            open_register(bank_code)
+            time.sleep(sleep)
         
         
 
@@ -313,7 +321,9 @@ grey = 0xABABAB
 white = 0xFFFFFF
 Transaction_List = []
 Skipped_List = []
-    
+   
+
+ 
 ##### SETTINGS #####
 apptitle = "Yuliya"
 statement = "C:\Python27\Scripts\QB\credit_test.txt"
@@ -322,7 +332,7 @@ do_debits = False
 do_credits = True
 request_confirmation = True
 sleep = 1 #seconds
+#option to remove 30 sec
 ##### SETTINGS #####
 
 Process(statement)
-
