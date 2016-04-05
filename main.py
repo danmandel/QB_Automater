@@ -12,15 +12,12 @@ def close_all_windows():
         Auto.send("n")     
     Auto.send("!w")
     Auto.send("a")
-    '''if Auto.WinExists("Recording"):
-        time.sleep(2)
-        print "'Do you want to record this transaction?' warning message still exists."
-        Auto.send("n")'''      
+        
     #time.sleep(1)
     for x in range(5):
         if not is_color(250,250,grey):
             Auto.send("{ESC}")
-            #print "Esc attempt %s" % x
+        
     Auto.Send("{ENTER 2}")
     #time.sleep(1)
     if Auto.WinExists("Past Transactions"):
@@ -45,25 +42,26 @@ def partially_type(text,n):
         time.sleep(.1)
     
 def open_register(bank_code):
-    # Should be started at a blank screen.
-    # Ends at bank register with "Date" textbox highlighted.
+    """ Should be started at a blank screen.
+        Ends at bank register with "Date" textbox highlighted. """
     Auto.send("^r") # Opens register.
     Auto.send(bank_code) # Types in bank_code.
     Auto.send("{ENTER}") # Brings up register.
       
 def setup():
-     Auto.WinActivate(apptitle)
-     Auto.WinMove(apptitle,"", 0, 0, 900, 700) #0,0,x,y
-     close_all_windows()
-     time.sleep(sleep)
-     open_register(bank_code)
-     tile_windows()
-     if check_checker() == 1:
-         Auto.send("!1") # "Alt + 1" to turn off 1_line box.
-    # Ends at "Date" textbox.
+    """ Started anywhere.
+        Ends at "Date" textbox """
+    Auto.WinActivate(apptitle)
+    Auto.WinMove(apptitle,"", 0, 0, 900, 700) #0,0,x,y
+    close_all_windows()
+    time.sleep(sleep)
+    open_register(bank_code)
+    tile_windows()
+    if check_checker() == 1:
+        Auto.send("!1") # "Alt + 1" to turn off 1_line box.
     
 def entered_y():
-    #Auto.WinActivate("C:\Python27")
+    # Auto.WinActivate("C:\Python27")
     Auto.WinMove("*Python 2.7.11 Shell*","", 901, 200, 460, 500)
     Auto.Send("!{TAB}")
     time.sleep(sleep)
@@ -75,7 +73,7 @@ def entered_y():
     
 def tile_windows():
     Auto.send("!w")
-    Auto.send("h") # Chooses "home" dropdown option. Ends wherever curlor left off. 
+    Auto.send("h") # Chooses "home" dropdown option. Ends wherever cursor left off. 
      
 def is_color(x,y,color):
     if color == Auto.PixelGetColor(x,y):
@@ -95,7 +93,8 @@ def errors_exist():
         return True
     if Auto.WinExists("Warning"): 
         print ("W")
-        return True   
+        return True  
+    # make all elifs, else return False?
          
 class Transaction(object):
     def __init__(self, transaction):
@@ -112,15 +111,15 @@ class Transaction(object):
             self.Type = "Amount = 0"
 
     def Send_Date(self): 
-    # Starts at register. 
-    # Ends with cursor in "Payee" textbox.
+        """ Starts at register. 
+            Ends with cursor in "Payee" textbox. """
         if self.Type == "credit":
             print ("starting copy_account")
             self.copy_account()
             time.sleep(sleep)
         print ("date %s" % self.date) 
         Auto.send("!d") # Moves cursor to "Date" textbox.
-        #print "Entering date: %s" % self.date
+      
         time.sleep(3)
         Auto.send(self.date)  
          
@@ -133,7 +132,7 @@ class Transaction(object):
             return True
                
     def Send_Vendor(self):     
-        # Starts at "Payee" textbox.
+        """ Starts at "Payee" textbox. """
         print ("Entering vendor: %s " % self.vendor)
         time.sleep(sleep)
         partially_type(self.vendor,n) # n letters
