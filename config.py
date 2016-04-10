@@ -22,11 +22,11 @@ conf = {
         },
     
     "methods": {
-        "print_x" : print ("yes this is x")
+        "print_x" : print ("x")
         },
     
     "messages": {
-        "error_1" : "shits goin down lol",
+        "error_1" : "error",
         }
 
     
