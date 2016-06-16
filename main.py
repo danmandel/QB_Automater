@@ -4,9 +4,9 @@ import time
 import datetime
 
 def close_all_windows():
-    """Starts anywhere. Ends with blank screen."""
+    """ Starts anywhere. Ends with blank screen. """
     Auto.WinActivate(apptitle)
-    Auto.send("{ESC}") # Should this be a SendEsc function?
+    Auto.send("{ESC}")
     if Auto.WinExists("Recording"):
         print "Closing recording message."
         Auto.send("n")     
@@ -72,7 +72,7 @@ def entered_y():
     
 def tile_windows():
     Auto.send("!w")
-    Auto.send("h") # Chooses "home" dropdown option. Ends wherever curlor left off. 
+    Auto.send("h") # Chooses "home" dropdown option. Ends wherever cursor left off. 
      
 def is_color(x,y,color):
     if color == Auto.PixelGetColor(x,y):
@@ -95,7 +95,7 @@ def errors_exist():
         return True   
          
 class Transaction(object):
-    """test docstring"""
+    """ Each new line in a CSV file. Contains date,vendor,and amount information. """
     def __init__(self, transaction):
         self.date = transaction[0]
         self.vendor = transaction[1]
@@ -210,7 +210,7 @@ class Transaction(object):
             return False 
 
     def copy_account(self):
-        # Start in vendor textbox for transaction. or date tb?
+        # Start in vendor textbox for transaction.
         time.sleep(sleep)
         Auto.send("!g")
         Auto.send("!s") # Now highlighted cursor is in "Search for: "
@@ -227,7 +227,7 @@ class Transaction(object):
       
         Auto.send("!k")
         time.sleep(sleep)
-        Auto.WinActivate(apptitle) #not sure why this seems to be necessary
+        Auto.WinActivate(apptitle) 
         if Auto.WinExists("Warning"):
             print "warning exists"
             Auto.send("{ENTER}")
@@ -249,12 +249,6 @@ class Transaction(object):
             open_register(bank_code)
             time.sleep(sleep)
         
-        
-
-        '''#messag
-        alt d
-        continue date'''
-
     def paste_account(self):
         Auto.send("{^v}")
                
@@ -296,7 +290,7 @@ def Process(statement):
         readCSV = csv.reader(csvfile, delimiter=',') 
         for transaction in readCSV:
             Auto.WinActivate(apptitle)
-            Current_Transaction = Transaction(transaction) #if i could end this function here thatd be great
+            Current_Transaction = Transaction(transaction) 
             Current_Transaction.Determine_Type()
             Current_Transaction.Transaction_Entry()                                 
             #Transaction_List.append(Current_Transaction)                               
@@ -305,11 +299,6 @@ def Process(statement):
             print "______________________________"            
                 
     print "Processed all transactions at: %s" % current_time
-
-def Process1(statement):
-    setup()
-    readCSV = open(statement)
-         
 
 n = 6 # length for partially_type()         
 Auto = Dispatch("AutoItX3.Control")
